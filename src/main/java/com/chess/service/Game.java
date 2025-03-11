@@ -1,17 +1,17 @@
 package com.chess.service;
 
-import java.io.IOException;
 import java.util.Scanner;
 import com.chess.entity.Board;
 import com.chess.entity.Piece;
 import com.chess.entity.Player;
 
 public class Game {
-    private Board board;
-    private Player player1;
-    private Player player2;
+    private final Board board;
+    private final Player player1;
+    private final Player player2;
+    private final Scanner scanner;
+
     private Player currentPlayer;
-    private Scanner scanner;
 
     public Game(String player1Name, String player2Name) {
         board = new Board();
@@ -34,13 +34,17 @@ public class Game {
     }
 
     private void clearScreen() {
-        // new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
 
-        try {
-            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-        } catch (InterruptedException | IOException e) {
-            // e.printStackTrace();
-            System.out.println(123);
+        // try {
+        // new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        // } catch (InterruptedException | IOException e) {
+        // // e.printStackTrace();
+        // System.out.println(123);
+        // }
+
+        // for循环30个\n
+        for (int i = 0; i < 30; i++) {
+            System.out.println();
         }
 
     }
