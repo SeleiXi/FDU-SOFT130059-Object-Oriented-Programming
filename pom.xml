@@ -25,7 +25,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.chess.game.Main</mainClass>
+                            <mainClass>com.chess.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
