@@ -2,7 +2,7 @@ package com.chess.entity;
 
 public enum Piece {
     BLACK("○"),
-    WHITE("◉"),
+    WHITE("●"),
     EMPTY(".");
 
     private final String symbol;
