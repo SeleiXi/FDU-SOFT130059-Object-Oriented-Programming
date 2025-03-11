@@ -1,3 +1,5 @@
 # Project exclude paths
-/target/
+# Due to the requirements from TA, a jar package should be included, so /target/ and a jar package should be included when submmiting your project
+/target/   
 /.idea/
+*.pdf
