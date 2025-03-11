@@ -21,9 +21,9 @@ name: Build and Push Docker Image for the Java Maven project
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
   build:
