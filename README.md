@@ -1,60 +1,26 @@
-# 棋类游戏
+# LAB1
 
-这是一个简单的控制台棋类游戏，两名玩家轮流在棋盘上落子。
-
-## 项目结构
-
-```
-com.chess
-├── Main.java           # 应用程序入口点
-├── entity              # 实体类包
-│   ├── Board.java      # 棋盘实体
-│   ├── Piece.java      # 棋子枚举
-│   └── Player.java     # 玩家实体
-└── service             # 服务层包
-    └── Game.java       # 游戏逻辑服务
-```
-
-## 功能特点
-
-- 棋盘显示：8x8 的棋盘
-- 玩家交互：通过控制台输入落子位置
-- 游戏规则：只能在空白位置落子
-- 游戏结束条件：棋盘填满时游戏结束
-
-## 如何运行
-
-### 使用 Maven
-
-```
-mvn clean package
-java -jar target/chess-game-1.0-SNAPSHOT.jar
-```
-
-### 使用 Docker
-
-```
-docker build -t chess-game .
-docker run -it chess-game
-```
-
-## 游戏操作
-
-- 落子位置输入格式：行号+列字母（例如：1a，2b）
-- 行号从 1 开始，列字母从 A 开始
-- 系统会显示当前轮到哪位玩家落子
+---
 
 Github：[https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/](https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/)
 
-### LAB1
+---
 
-#### About the project
+## About the project
 
-Prof. Zhang mentioned in class that this Lab requires the concept of object-oriented, which is also a key focus of this course (SOFT130058). Therefore, the project emphasizes the use of features such as encapsulation.
+Prof. Zhang mentioned in class that this Lab requires the concept of object-oriented, which is also a key focus of this course (SOFT130058). Therefore, the project emphasizes the use of features such as encapsulation and abstraction.
 
-e.g.
+1. Entity
 
-```Game.Java
+- Board
+- Piece
+- Player
+
+2. Encapsulation
+
+- Game.java
+
+```Java
 
     private Board board;
     private Player player1;
@@ -62,33 +28,72 @@ e.g.
     private Player currentPlayer;
     private Scanner scanner;
 
-
 ```
 
-####
+3. Abstraction
 
-#### Getting Started
+The Piece class is an enum, which abstracts the concept of a chess piece into a set of predefined constants (BLACK, WHITE, EMPTY). This abstraction allows the rest of the code to work with these high-level concepts without worrying about their underlying representation.
 
-You have two ways to run the project.
+```java
+   public enum Piece {
+       BLACK("○"),
+       WHITE("●"),
+       EMPTY(".")
+   }
+```
 
-- Method 1 (recommended)
+## Getting Started
 
-  1. Clone the repo
+### Docker
 
-  ```sh
-  git clone https://github.com/project-kxkg/ViDove.git
-  cd ViDove
-  ```
+```
+docker pull seleixi/soft130059:latest
+docker run -it seleixi/soft130059:latest
+```
 
-  2. Install Requirments
+### Maven
 
-  ```sh
-  conda create -n ViDove python=3.10 -y
-  conda activate ViDove
-  pip install --upgrade pip
-  pip install -r requirements.txt
-  ```
+```
+git clone https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming.git
+cd FDU-SOFT130059-Object-Oriented-Programming
+mvn clean package
+java -jar target/chess-game-1.0-SNAPSHOT.jar
+```
 
-#### Details
+### jar package
 
-The project has uploaded some files that should be in .gitignore, because TA may run the project in his/her local java environment.
+```
+git clone https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming.git
+cd FDU-SOFT130059-Object-Oriented-Programming
+java -jar target/chess-game-1.0-SNAPSHOT.jar
+```
+
+## Details
+
+The project has not excluded ./target in .gitignore, to fulfill the requirements that a jar package should be included.
+
+## Project Structure
+
+```
+com.chess
+├── Main.java          # Game Entry
+├── entity
+│   ├── Board.java
+│   ├── Piece.java
+│   └── Player.java
+└── service
+    └── Game.java
+```
+
+### Features
+
+- Board Display: An 8x8 board
+- Player Interaction: Players input their moves via the console
+- Game Rules: Moves can only be made in empty positions
+- Game End Condition: The game ends when the board is full
+
+### Game Operation
+
+- Move Input Format: Row number + column letter (e.g., 1a, 2b)
+- Row numbers start from 1, and column letters start from A
+- The system will indicate which player’s turn it is to make a move
