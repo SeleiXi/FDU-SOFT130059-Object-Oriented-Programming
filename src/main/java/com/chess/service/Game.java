@@ -10,6 +10,8 @@ public class Game {
     private final Player player1;
     private final Player player2;
     private final Scanner scanner;
+    private int board_mid;
+    private int board_size;
 
     private Player currentPlayer;
 
@@ -19,6 +21,8 @@ public class Game {
         player2 = new Player(player2Name, Piece.WHITE);
         currentPlayer = player1;
         scanner = new Scanner(System.in);
+        board_size = board.getSize();
+        board_mid = board_size / 2;
     }
 
     public void start() {
@@ -35,6 +39,7 @@ public class Game {
 
     private void clearScreen() {
 
+        // Method 1:
         // try {
         // new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         // } catch (InterruptedException | IOException e) {
@@ -42,8 +47,9 @@ public class Game {
         // System.out.println(123);
         // }
 
-        // for循环30个\n
-        for (int i = 0; i < 30; i++) {
+        // Method 2:
+        // use an amount of \n to clear the screen
+        for (int i = 0; i < board_size * 10; i++) {
             System.out.println();
         }
 
@@ -58,10 +64,10 @@ public class Game {
             }
 
             // Display player information on the right side of the board
-            if (i == 4) {
+            if (i == board_mid) {
                 System.out.print("  玩家[" + player1.getName() + "] " +
                         (currentPlayer == player1 ? player1.getPieceType().getSymbol() : ""));
-            } else if (i == 5) {
+            } else if (i == board_mid + 1) { // display the second player's information in the next line
                 System.out.print("  玩家[" + player2.getName() + "] " +
                         (currentPlayer == player2 ? player2.getPieceType().getSymbol() : ""));
             }
