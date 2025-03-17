@@ -6,27 +6,40 @@ import com.chess.entity.Piece;
 import com.chess.entity.Player;
 
 public class Game {
-    private final Board board;
+    private static final int BOARD_COUNT = 3;
+    private static final int SCREEN_CLEAR_LINES = 80;
+    
+    private final Board[] boards;
     private final Player player1;
     private final Player player2;
     private final Scanner scanner;
-    private int board_mid;
-    private int board_size;
-
+    
+    private int boardSize;
+    private int boardMiddle;
+    private int currentBoardIndex;
     private Player currentPlayer;
+    private boolean isGameEnded;
 
     public Game(String player1Name, String player2Name) {
-        board = new Board();
+        boards = new Board[BOARD_COUNT];
+        for (int i = 0; i < BOARD_COUNT; i++) {
+            boards[i] = new Board();
+        }
+        currentBoardIndex = 0;
+        
         player1 = new Player(player1Name, Piece.BLACK);
         player2 = new Player(player2Name, Piece.WHITE);
         currentPlayer = player1;
+        
         scanner = new Scanner(System.in);
-        board_size = board.getSize();
-        board_mid = board_size / 2;
+        boardSize = boards[0].getSize();
+        boardMiddle = boardSize / 2;
+        isGameEnded = false;
     }
 
     public void start() {
-        while (!board.isFull()) {
+        while (!isGameEnded) {
+            checkGameEnd();
             clearScreen();
             displayBoard();
             makeMove();
@@ -37,37 +50,35 @@ public class Game {
         System.out.println("游戏结束，棋盘已满！");
     }
 
+    private void checkGameEnd() {
+        isGameEnded = true;
+        for (int i = 0; i < BOARD_COUNT; i++) {
+            if (!boards[i].isFull()) {
+                isGameEnded = false;
+                break;
+            }
+        }
+    }
+
     private void clearScreen() {
-
-        // Method 1:
-        // try {
-        // new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-        // } catch (InterruptedException | IOException e) {
-        // // e.printStackTrace();
-        // System.out.println(123);
-        // }
-
-        // Method 2:
-        // use an amount of \n to clear the screen
-        for (int i = 0; i < board_size * 10; i++) {
+        for (int i = 0; i < SCREEN_CLEAR_LINES; i++) {
             System.out.println();
         }
-
     }
 
     private void displayBoard() {
+        System.out.println("当前棋盘：" + (currentBoardIndex + 1));
         System.out.println("  A B C D E F G H");
-        for (int i = 0; i < board.getSize(); i++) {
-            System.out.print((i + 1) + " ");
-            for (int j = 0; j < board.getSize(); j++) {
-                System.out.print(" " + board.getPiece(i, j).getSymbol());
+        for (int i = 0; i < boardSize; i++) {
+            System.out.print((i + 1));
+            for (int j = 0; j < boardSize; j++) {
+                System.out.print(" " + boards[currentBoardIndex].getPiece(i, j).getSymbol());
             }
 
-            // Display player information on the right side of the board
-            if (i == board_mid) {
+            if (i == boardMiddle) {
                 System.out.print("  玩家[" + player1.getName() + "] " +
                         (currentPlayer == player1 ? player1.getPieceType().getSymbol() : ""));
-            } else if (i == board_mid + 1) { // display the second player's information in the next line
+            } else if (i == boardMiddle + 1) {
                 System.out.print("  玩家[" + player2.getName() + "] " +
                         (currentPlayer == player2 ? player2.getPieceType().getSymbol() : ""));
             }
@@ -80,26 +91,54 @@ public class Game {
     private void makeMove() {
         boolean validMove = false;
         while (!validMove) {
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置：");
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置或棋盘号(1-" + BOARD_COUNT + ")：");
             String input = scanner.nextLine().trim();
 
-            if (input.length() < 2) {
-                System.out.println("输入格式有误，请使用数字+字母（如：1a）");
+            if (input.isEmpty()) {
+                System.out.println("输入不能为空，请重新输入");
                 continue;
             }
-
-            try {
-                int row = Integer.parseInt(input.substring(0, 1)) - 1;
-                char colChar = Character.toUpperCase(input.charAt(1));
-                int col = colChar - 'A';
-
-                validMove = board.placePiece(row, col, currentPlayer.getPieceType());
-                if (!validMove) {
-                    System.out.println("落子位置有误，请重新输入！");
-                }
-            } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                System.out.println("输入格式有误，请使用数字+字母（如：1a）");
+            
+            // 根据文档的TIPS，根据输入长度判断是棋盘切换还是落子位置
+            if (input.length() == 1) {
+                processBoardSelection(input);
+            } else if (input.length() >= 2) {
+                validMove = processMoveInput(input);
+            } else {
+                System.out.println("输入格式有误，请使用1-" + BOARD_COUNT + "的数字或数字+字母（如：1a）");
             }
+        }
+    }
+
+    private void processBoardSelection(String input) {
+        try {
+            int boardNumber = Integer.parseInt(input);
+            if (boardNumber >= 1 && boardNumber <= BOARD_COUNT) {
+                currentBoardIndex = boardNumber - 1;
+                clearScreen();
+                displayBoard();
+            } else {
+                System.out.println("棋盘号必须在1-" + BOARD_COUNT + "之间，请重新输入！");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("输入格式有误，请使用1-" + BOARD_COUNT + "的数字或数字+字母（如：1a）");
+        }
+    }
+
+    private boolean processMoveInput(String input) {
+        try {
+            int row = Integer.parseInt(input.substring(0, 1)) - 1;
+            char colChar = Character.toUpperCase(input.charAt(1));
+            int col = colChar - 'A';
+
+            boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType());
+            if (!validMove) {
+                System.out.println("落子位置有误，请重新输入！");
+            }
+            return validMove;
+        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+            System.out.println("输入格式有误，请使用数字+字母（如：1a）");
+            return false;
         }
     }
 
