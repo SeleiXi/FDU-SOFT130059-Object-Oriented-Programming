@@ -17,6 +17,14 @@ public class Board {
                 grid[i][j] = Piece.EMPTY;
             }
         }
+        
+        // 设置初始布局：⿊棋位于 4E 和 5D，⽩棋位于 4D 和 5E
+        grid[3][4] = Piece.BLACK; // 4E
+        grid[4][3] = Piece.BLACK; // 5D
+        grid[3][3] = Piece.WHITE; // 4D
+        grid[4][4] = Piece.WHITE; // 5E
+        
+        filledPositions = 4;
     }
 
     public boolean placePiece(int row, int col, Piece piece) {
