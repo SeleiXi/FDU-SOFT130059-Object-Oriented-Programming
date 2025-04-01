@@ -6,12 +6,10 @@ import com.chess.entity.Player;
 
 public class ReversiGame extends Game {
     
-    // 构造函数
     public ReversiGame(String player1Name, String player2Name, int gameId) {
         super(player1Name, player2Name, GameMode.REVERSI, gameId);
     }
     
-    // 初始化黑白棋棋盘
     @Override
     protected void initializeBoard() {
         for (int i = 0; i < BOARD_COUNT; i++) {
@@ -26,14 +24,12 @@ public class ReversiGame extends Game {
         currentPlayer = player1;
     }
     
-    // 重写开始游戏方法
     @Override
     public void start() {
         while (!isGameEnded) {
             checkGameEnd();
             clearScreen();
             displayBoard();
-            displayGameList();
             
             // 处理没有合法落子的情况
             if (!hasValidMove(currentPlayer)) {
@@ -49,15 +45,12 @@ public class ReversiGame extends Game {
             }
             
             makeMove();
-            switchPlayer();
         }
         clearScreen();
         displayBoard();
-        displayGameList();
         displayGameResult();
     }
     
-    // 重写一轮游戏方法
     @Override
     public void playOneRound() {
         if (isGameEnded) {
@@ -84,35 +77,84 @@ public class ReversiGame extends Game {
         checkGameEnd();
     }
     
-    // 重写显示棋盘方法
     @Override
     protected void displayBoard() {
-        System.out.println("当前棋盘：" + (currentBoardIndex + 1) + " (模式: " + gameMode.getName() + ")");
         System.out.println("  A B C D E F G H");
         
-        for (int i = 0; i < boardSize; i++) {
-            System.out.print((i + 1));
-            for (int j = 0; j < boardSize; j++) {
-                // 显示合法落子位置
-                if (boards[currentBoardIndex].getPiece(i, j) == Piece.EMPTY && 
-                    isValidMove(i, j, currentPlayer.getPieceType())) {
-                    System.out.print(" +");
-                } else {
-                    System.out.print(" " + boards[currentBoardIndex].getPiece(i, j).getSymbol());
+        for (int i = 0; i < Math.max(boardSize, 6 + gameList.size() - 2); i++) {
+            // 显示棋盘行（如果在棋盘范围内）
+            if (i < boardSize) {
+                System.out.print((i + 1));
+                for (int j = 0; j < boardSize; j++) {
+                    // 显示合法落子位置
+                    if (boards[currentBoardIndex].getPiece(i, j) == Piece.EMPTY && 
+                        isValidMove(i, j, currentPlayer.getPieceType())) {
+                        System.out.print(" +");
+                    } else {
+                        System.out.print(" " + boards[currentBoardIndex].getPiece(i, j).getSymbol());
+                    }
                 }
+            } else {
+                // 如果超出棋盘范围，只需要为游戏列表留出空间
+                System.out.print("                 ");
             }
 
-            // 显示玩家信息和得分
-            if (i == boardMiddle - 1) {
-                System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")");
-            } else if (i == boardMiddle) {
-                System.out.print("  玩家[" + player1.getName() + "] " +
-                        (currentPlayer == player1 ? player1.getPieceType().getSymbol() : ""));
-                System.out.print(" 得分: " + countPieces(Piece.BLACK));
-            } else if (i == boardMiddle + 1) {
-                System.out.print("  玩家[" + player2.getName() + "] " +
-                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() : ""));
-                System.out.print(" 得分: " + countPieces(Piece.WHITE));
+            // 右侧显示游戏信息、玩家得分和游戏列表
+            if (i == 3) {
+                System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")           游戏列表");
+            } else if (i == 4) {
+                // 计算第一行玩家信息
+                String playerInfo = String.format("  玩家[%s] %s 得分: %d", 
+                    player1.getName(),
+                    (currentPlayer == player1 ? player1.getPieceType().getSymbol() : ""),
+                    countPieces(Piece.BLACK));
+                
+                System.out.print(playerInfo);
+                
+                // 确保游戏列表项始终从第25列开始（为黑白棋模式左移5格）
+                int targetColumn = 25; 
+                int spaces = targetColumn - playerInfo.length();
+                for (int s = 0; s < spaces; s++) {
+                    System.out.print(" ");
+                }
+                
+                if (0 < gameList.size()) {
+                    System.out.print("1. " + gameList.get(0).gameMode.getName() + 
+                        (0 == currentGameIndex ? " (当前)" : ""));
+                }
+            } else if (i == 5) {
+                // 计算第二行玩家信息
+                String playerInfo = String.format("  玩家[%s] %s 得分: %d", 
+                    player2.getName(),
+                    (currentPlayer == player2 ? player2.getPieceType().getSymbol() : ""),
+                    countPieces(Piece.WHITE));
+                
+                System.out.print(playerInfo);
+                
+                // 确保游戏列表项始终从第25列开始（为黑白棋模式左移5格）
+                int targetColumn = 25;
+                int spaces = targetColumn - playerInfo.length();
+                for (int s = 0; s < spaces; s++) {
+                    System.out.print(" ");
+                }
+                
+                if (1 < gameList.size()) {
+                    System.out.print("2. " + gameList.get(1).gameMode.getName() + 
+                        (1 == currentGameIndex ? " (当前)" : ""));
+                }
+            } else if (i >= 6 && i < 6 + gameList.size() - 2) {
+                // 从第三个游戏开始，顺序显示剩余的游戏列表项
+                int gameIndex = i - 6 + 2; // 从第三个游戏(索引2)开始
+                if (gameIndex < gameList.size()) {
+                    // 使用35列（相比第一二行右移5格）
+                    StringBuilder spaces = new StringBuilder();
+                    for (int s = 0; s < 29; s++) {
+                        spaces.append(" ");
+                    }
+                    System.out.print(spaces.toString() + (gameIndex + 1) + ". " + 
+                            gameList.get(gameIndex).gameMode.getName() + 
+                            (gameIndex == currentGameIndex ? " (当前)" : ""));
+                }
             }
 
             System.out.println();

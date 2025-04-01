@@ -24,12 +24,12 @@ public class Game {
         }
     }
     
-    protected static final int BOARD_COUNT = 2;
+    protected static int BOARD_COUNT = 2;
     protected static final int SCREEN_CLEAR_LINES = 80;
     
     // 游戏管理相关属性
-    private static List<Game> gameList = new ArrayList<>();
-    private static int currentGameIndex = 0;
+    protected static List<Game> gameList = new ArrayList<>();
+    protected static int currentGameIndex = 0;
     
     protected final Board[] boards;
     protected final Player player1;
@@ -94,6 +94,7 @@ public class Game {
         } else if (gameType.equalsIgnoreCase("reversi")) {
             gameList.add(new ReversiGame("Player1", "Player2", gameList.size() + 1));
         }
+        BOARD_COUNT++;
     }
     
     // 静态方法：切换到指定游戏
@@ -111,7 +112,6 @@ public class Game {
             Game currentGame = gameList.get(currentGameIndex);
             currentGame.clearScreen();
             currentGame.displayBoard();
-            currentGame.displayGameList();
             
             // 执行当前游戏的一轮，包括所有输入处理
             currentGame.playOneRound();
@@ -162,38 +162,44 @@ public class Game {
 
     // 显示棋盘
     protected void displayBoard() {
-        System.out.println("当前棋盘：" + (currentBoardIndex + 1) + " (模式: " + gameMode.getName() + ")");
         System.out.println("  A B C D E F G H");
         
-        for (int i = 0; i < boardSize; i++) {
-            System.out.print((i + 1));
-            for (int j = 0; j < boardSize; j++) {
-                System.out.print(" " + boards[currentBoardIndex].getPiece(i, j).getSymbol());
+        for (int i = 0; i < Math.max(boardSize, 6 + gameList.size() - 2); i++) {
+            // 显示棋盘行（如果在棋盘范围内）
+            if (i < boardSize) {
+                System.out.print((i + 1));
+                for (int j = 0; j < boardSize; j++) {
+                    System.out.print(" " + boards[currentBoardIndex].getPiece(i, j).getSymbol());
+                }
+            } else {
+                // 如果超出棋盘范围，只需要为游戏列表留出空间
+                System.out.print("                 ");
             }
 
-            // 显示玩家信息
-            if (i == boardMiddle - 1) {
-                System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")");
-            } else if (i == boardMiddle) {
+            // 右侧显示游戏信息和游戏列表
+            if (i == 3) {
+                System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")    游戏列表");
+            } else if (i == 4) {
                 System.out.print("  玩家[" + player1.getName() + "] " +
-                        (currentPlayer == player1 ? player1.getPieceType().getSymbol() : ""));
-            } else if (i == boardMiddle + 1) {
+                        (currentPlayer == player1 ? player1.getPieceType().getSymbol() : "") + "   " + 
+                        (0 < gameList.size() ? "1. " + gameList.get(0).gameMode.getName() + 
+                        (0 == currentGameIndex ? " (当前)" : "") : ""));
+            } else if (i == 5) {
                 System.out.print("  玩家[" + player2.getName() + "] " +
-                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() : ""));
+                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() : "") + "    " + 
+                        (1 < gameList.size() ? "2. " + gameList.get(1).gameMode.getName() + 
+                        (1 == currentGameIndex ? " (当前)" : "") : ""));
+            } else if (i >= 6 && i < 6 + gameList.size() - 2) {
+                // 从第三个游戏开始，顺序显示剩余的游戏列表项
+                int gameIndex = i - 6 + 2; // 从第三个游戏(索引2)开始
+                if (gameIndex < gameList.size()) {
+                    System.out.print("                    " + (gameIndex + 1) + ". " + 
+                            gameList.get(gameIndex).gameMode.getName() + 
+                            (gameIndex == currentGameIndex ? " (当前)" : ""));
+                }
             }
 
             System.out.println();
-        }
-        System.out.println();
-    }
-
-    // 显示游戏列表
-    protected void displayGameList() {
-        System.out.println("游戏列表：");
-        for (int i = 0; i < gameList.size(); i++) {
-            Game game = gameList.get(i);
-            System.out.println((i + 1) + ". " + game.gameMode.getName() + 
-                    (i == currentGameIndex ? " (当前游戏)" : ""));
         }
         System.out.println();
     }
@@ -203,7 +209,7 @@ public class Game {
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置或棋盘号，或输入peace/reversi添加新游戏，或输入游戏序号切换游戏，输入quit退出：");
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1A) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 退出程序(quit)：");
             String input = scanner.nextLine().trim();
 
             if (input.isEmpty()) {
@@ -223,7 +229,6 @@ public class Game {
                 addNewGame(input);
                 clearScreen();
                 displayBoard();
-                displayGameList();
                 continue;
             }
             
@@ -243,6 +248,7 @@ public class Game {
                 processBoardSelection(input);
             } else if (input.length() >= 2) {
                 validMove = processMoveInput(input);
+                switchPlayer();
             } else {
                 System.out.println("输入格式有误，请使用1-" + validBoardCount + "的数字或数字+字母（如：1a）");
             }
@@ -258,7 +264,6 @@ public class Game {
                 currentBoardIndex = boardNumber - 1;
                 clearScreen();
                 displayBoard();
-                displayGameList();
             } else {
                 System.out.println("无效的棋盘号，请输入1-" + countInitializedBoards() + "之间的数字！");
             }
