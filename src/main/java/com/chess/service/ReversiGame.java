@@ -44,7 +44,7 @@ public class ReversiGame extends Game {
                 }
             }
             
-            makeMove();
+            makeMove(true);
         }
         clearScreen();
         displayBoard();
@@ -72,7 +72,7 @@ public class ReversiGame extends Game {
             }
         }
         
-        makeMove();
+        makeMove(true);
         // switchPlayer();
         checkGameEnd();
     }

@@ -125,7 +125,7 @@ public class Game {
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
         }
         
-        makeMove();
+        makeMove(false);
         
         if (!isGameEnded) {
             // switchPlayer();
@@ -205,11 +205,15 @@ public class Game {
     }
 
     // 处理落子，添加对quit命令的处理
-    protected void makeMove() {
+    protected void makeMove(boolean isReversi) {
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 退出程序(quit)：");
+            if (isReversi) {
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 跳过行棋（Pass） / 退出程序(quit)：");
+            } else {
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 退出程序(quit)：");
+            }
             String input = scanner.nextLine().trim();
 
             if (input.isEmpty()) {
@@ -229,6 +233,11 @@ public class Game {
                 addNewGame(input);
                 clearScreen();
                 displayBoard();
+                continue;
+            }
+
+            if(isReversi && input.equalsIgnoreCase("pass")) {
+                switchPlayer();
                 continue;
             }
             
