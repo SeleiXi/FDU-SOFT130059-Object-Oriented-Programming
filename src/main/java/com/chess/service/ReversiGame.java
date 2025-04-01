@@ -55,7 +55,7 @@ public class ReversiGame extends Game {
     public void playOneRound() {
         if (isGameEnded) {
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
-            return;
+            // return;
         }
         
         // 处理没有合法落子的情况
@@ -313,7 +313,6 @@ public class ReversiGame extends Game {
             // 只有当这条线上最后遇到自己的棋子时，才翻转中间的对手棋子
             if (isWithinBoard(r, c) && boards[currentBoardIndex].getPiece(r, c) == pieceType && !toFlip.isEmpty()) {
                 for (int[] pos : toFlip) {
-                    System.out.println("翻转棋子：" + pos[0] + "," + pos[1] + " " + pieceType.getSymbol());
                     boards[currentBoardIndex].placePiece(pos[0], pos[1], pieceType,true);
                 }
             }

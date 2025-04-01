@@ -123,6 +123,8 @@ public class Game {
         // 无论游戏是否结束，都使用makeMove来处理输入
         if (isGameEnded) {
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
+            // 不能return，否则会无限循环，因为没有进入makeMove从而进入input()等待
+            // return;
         }
         
         makeMove(false);
