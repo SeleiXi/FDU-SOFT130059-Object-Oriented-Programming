@@ -24,32 +24,32 @@ public class ReversiGame extends Game {
         currentPlayer = player1;
     }
     
-    @Override
-    public void start() {
-        while (!isGameEnded) {
-            checkGameEnd();
-            clearScreen();
-            displayBoard();
+    // @Override
+    // public void start() {
+    //     while (!isGameEnded) {
+    //         checkGameEnd();
+    //         clearScreen();
+    //         displayBoard();
             
-            // 处理没有合法落子的情况
-            if (!hasValidMove(currentPlayer)) {
-                System.out.println("玩家[" + currentPlayer.getName() + "]没有合法落子位置，弃权一次");
-                switchPlayer();
+    //         // 处理没有合法落子的情况
+    //         if (!hasValidMove(currentPlayer)) {
+    //             System.out.println("玩家[" + currentPlayer.getName() + "]没有合法落子位置，弃权一次");
+    //             switchPlayer();
                 
-                // 如果下一个玩家也没有合法落子，游戏结束
-                if (!hasValidMove(currentPlayer)) {
-                    isGameEnded = true;
-                    System.out.println("两位玩家都没有合法落子位置，游戏结束！");
-                    continue;
-                }
-            }
+    //             // 如果下一个玩家也没有合法落子，游戏结束
+    //             if (!hasValidMove(currentPlayer)) {
+    //                 isGameEnded = true;
+    //                 System.out.println("两位玩家都没有合法落子位置，游戏结束！");
+    //                 continue;
+    //             }
+    //         }
             
-            makeMove(true);
-        }
-        clearScreen();
-        displayBoard();
-        displayGameResult();
-    }
+    //         makeMove(true);
+    //     }
+    //     clearScreen();
+    //     displayBoard();
+    //     displayGameResult();
+    // }
     
     @Override
     public void playOneRound() {
