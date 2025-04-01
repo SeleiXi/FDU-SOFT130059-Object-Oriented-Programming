@@ -6,6 +6,29 @@ Github：[https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/
 
 ---
 
+## 运行方式
+
+### Docker
+
+```
+docker pull seleixi/soft130059:latest
+docker run -it seleixi/soft130059:latest
+```
+
+### Maven
+
+```
+mvn clean package
+java -jar target/chess-game-1.0-SNAPSHOT.jar
+```
+
+### jar包
+
+```
+java -jar target/chess-game-1.0-SNAPSHOT.jar
+```
+
+
 ## 新加的功能
 
 - 支持同时在3个棋盘上进行游戏
@@ -50,32 +73,6 @@ private static final int BOARD_COUNT = 3;
  ```
 
 
-## 启动
-
-### Docker
-
-```
-docker pull seleixi/soft130059:latest
-docker run -it seleixi/soft130059:latest
-```
-
-### Maven
-
-```
-git clone https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming.git
-cd FDU-SOFT130059-Object-Oriented-Programming
-mvn clean package
-java -jar target/chess-game-1.0-SNAPSHOT.jar
-```
-
-### jar包
-
-```
-git clone https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming.git
-切换到相应的分支（例如 lab2, lab3）
-cd FDU-SOFT130059-Object-Oriented-Programming
-java -jar target/chess-game-1.0-SNAPSHOT.jar
-```
 
 ## 项目结构
 
