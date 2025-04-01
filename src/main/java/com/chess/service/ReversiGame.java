@@ -80,7 +80,7 @@ public class ReversiGame extends Game {
         }
         
         makeMove();
-        switchPlayer();
+        // switchPlayer();
         checkGameEnd();
     }
     

@@ -24,7 +24,7 @@ public class Game {
         }
     }
     
-    protected static final int BOARD_COUNT = 3;
+    protected static final int BOARD_COUNT = 2;
     protected static final int SCREEN_CLEAR_LINES = 80;
     
     // 游戏管理相关属性
@@ -128,7 +128,7 @@ public class Game {
         makeMove();
         
         if (!isGameEnded) {
-            switchPlayer();
+            // switchPlayer();
             checkGameEnd();
             
             if (isGameEnded) {
@@ -202,7 +202,8 @@ public class Game {
     protected void makeMove() {
         boolean validMove = false;
         while (!validMove) {
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置或棋盘号(1-" + BOARD_COUNT + ")，或输入peace/reversi添加新游戏，或输入游戏序号切换游戏，输入quit退出：");
+            int validBoardCount = countInitializedBoards();
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置或棋盘号，或输入peace/reversi添加新游戏，或输入游戏序号切换游戏，输入quit退出：");
             String input = scanner.nextLine().trim();
 
             if (input.isEmpty()) {
@@ -243,26 +244,38 @@ public class Game {
             } else if (input.length() >= 2) {
                 validMove = processMoveInput(input);
             } else {
-                System.out.println("输入格式有误，请使用1-" + BOARD_COUNT + "的数字或数字+字母（如：1a）");
+                System.out.println("输入格式有误，请使用1-" + validBoardCount + "的数字或数字+字母（如：1a）");
             }
         }
     }
 
-    // 处理切换棋盘
+    // 修复处理切换棋盘方法，正确检查棋盘边界
     protected void processBoardSelection(String input) {
         try {
             int boardNumber = Integer.parseInt(input);
-            if (boardNumber >= 1 && boardNumber <= BOARD_COUNT) {
+            // 检查棋盘号是否在有效范围内（1到已初始化的棋盘数量）
+            if (boardNumber >= 1 && boardNumber <= boards.length && boards[boardNumber - 1] != null) {
                 currentBoardIndex = boardNumber - 1;
                 clearScreen();
                 displayBoard();
                 displayGameList();
             } else {
-                System.out.println("棋盘号必须在1-" + BOARD_COUNT + "之间，请重新输入！");
+                System.out.println("无效的棋盘号，请输入1-" + countInitializedBoards() + "之间的数字！");
             }
         } catch (NumberFormatException e) {
-            System.out.println("输入格式有误，请使用1-" + BOARD_COUNT + "的数字或数字+字母（如：1a）");
+            System.out.println("输入格式有误，请使用1-" + countInitializedBoards() + "的数字或数字+字母（如：1a）");
         }
+    }
+
+    // 添加辅助方法，计算初始化的棋盘数量
+    private int countInitializedBoards() {
+        int count = 0;
+        for (Board board : boards) {
+            if (board != null) {
+                count++;
+            }
+        }
+        return count;
     }
 
     // 处理落子输入
