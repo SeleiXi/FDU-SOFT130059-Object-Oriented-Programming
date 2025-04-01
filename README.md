@@ -1,4 +1,4 @@
-# LAB3
+# 黑白棋与和平棋游戏系统
 
 ---
 
@@ -6,51 +6,7 @@ Github：[https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/
 
 ---
 
-## Features
-
-- Support for 3 separate chess boards that can be played concurrently
-- Players can easily switch between boards during gameplay
-- Each board maintains its state independently
-
-## Details
-
-- The board count is limited to 3, a constand is defined at the start of Game.java
-```
-private static final int BOARD_COUNT = 3;
-```
-
-- The condition to end the game is not `!board.isFull()` now, because we have 3 boards, so we define a function to judge
-```
-    private void checkGameEnd() {
-         isGameEnded = true;
-         for (int i = 0; i < BOARD_COUNT; i++) {
-             if (!boards[i].isFull()) {
-                 isGameEnded = false;
-                 break;
-             }
-         }
-     }
-```
-
-- I won't hardcode a specific number to my program
-```  for (int i = 0; i < boardSize; i++) { ```
-```  System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置或棋盘号(1-" + BOARD_COUNT + ")："); ```
-
-- according to the lab3 document (the tips part), error message depends on the length of the input
-``` java
- if (input.length() == 1) {
-                 processBoardSelection(input);
-             } else if (input.length() >= 2) {
-                 validMove = processMoveInput(input);
-             } else {
-                 System.out.println("输入格式有误，请使用1-" + BOARD_COUNT + "的数字或数字+字母（如：1a）");
-             }
-         }
-     }
- ```
-
-
-## Getting Started
+## 运行方式
 
 ### Docker
 
@@ -62,43 +18,78 @@ docker run -it seleixi/soft130059:latest
 ### Maven
 
 ```
-git clone https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming.git
-cd FDU-SOFT130059-Object-Oriented-Programming
 mvn clean package
 java -jar target/chess-game-1.0-SNAPSHOT.jar
 ```
 
-### jar package
+### jar包
 
 ```
-git clone https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming.git
-checkout to the corresponding branch (e.g. lab2, lab3)
-cd FDU-SOFT130059-Object-Oriented-Programming
 java -jar target/chess-game-1.0-SNAPSHOT.jar
+```
 
-## Project Structure
+## 支持的游戏模式
+
+### 和平棋（Peace）
+- 基本规则：玩家轮流在棋盘上放置棋子，棋子只能放在空位置上
+- 游戏结束：当所有棋盘都满时游戏结束
+
+### 黑白棋（Reversi/奥赛罗）
+- 基本规则：玩家轮流在棋盘上放置棋子，并翻转被夹住的对手棋子
+- 合法落子：必须能够夹住对手至少一个棋子
+- Pass规则：当玩家没有合法落子位置时，自动让对手行棋
+- 游戏结束：当双方都无法落子或棋盘已满时结束
+- 胜负判定：以棋盘上各自颜色棋子数量决定胜负
+
+## 核心功能
+
+- 多游戏支持：可以在和平棋与黑白棋模式间切换
+- 多棋盘支持：在一个游戏会话中维护多个棋盘
+- 实时游戏切换：可随时切换不同游戏或创建新游戏
+- 显示当前玩家：清晰标识该哪位玩家落子
+- 显示可落子位置：在黑白棋模式下显示合法落子位置（以 + 标记）
+- 显示双方得分：在黑白棋模式下实时统计双方棋子数量
+
+## 操作指南
+
+- 落子：输入行号+列字母（例如 1a，2b）
+- 切换棋盘：输入棋盘号（1-3）
+- 切换/新建游戏：输入游戏类型（peace, reversi）
+- 黑白棋跳过行棋：输入 pass（仅当没有合法落子位置时允许）
+- 退出游戏：输入 quit
+
+## 游戏界面
+
+```
+  A B C D E F G H
+1 . . . . . . . .
+2 . . . + . . . .
+3 . . . ○ + . . .
+4 . . . ○ ○ + . .  游戏#2 (reversi)           游戏列表
+5 . . + ○ ● . . .  玩家[Player1]  得分: 3     1. peace
+6 . . . + . . . .  玩家[Player2] ● 得分: 2    2. reversi (当前)
+7 . . . . . . . .                    3. peace
+8 . . . . . . . .
+```
+
+## 项目结构
 
 ```
 com.chess
-├── Main.java          # Game Entry
+├── Main.java          # 游戏入口
 ├── entity
-│   ├── Board.java
-│   ├── Piece.java
-│   └── Player.java
+│   ├── Board.java     # 棋盘
+│   ├── Piece.java     # 棋子
+│   └── Player.java    # 玩家
 └── service
-    └── Game.java
+    ├── Game.java      # 游戏基础逻辑
+    └── ReversiGame.java # 黑白棋特有逻辑
 ```
 
-### Features
+## 开发细节
 
-- Board Display: An 8x8 board
-- Player Interaction: Players input their moves via the console
-- Game Rules: Moves can only be made in empty positions
-- Game End Condition: The game ends when the board is full
-
-### Game Operation
-
-- Change to a different board: board number(e.g. 1,2,3), this lab has limited us for 3 boards
-- Move Input Format: Row number + column letter (e.g., 1a, 2b)
-    - Row numbers start from 1, and column letters start from A
-- The system will indicate which player's turn it is to make a move
+- 继承关系：ReversiGame继承Game类，实现特有的游戏规则
+- 多态应用：通过override实现不同游戏模式的差异化逻辑
+- 封装：各类通过私有变量与公开方法实现良好封装
+- 代码重用：核心游戏功能集中在父类中，子类只实现特殊功能
+- 灵活性：通过常量控制多项游戏参数，避免硬编码 

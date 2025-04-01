@@ -166,9 +166,28 @@ public class ReversiGame extends Game {
     @Override
     protected boolean processMoveInput(String input) {
         try {
-            int row = Integer.parseInt(input.substring(0, 1)) - 1;
-            char colChar = Character.toUpperCase(input.charAt(1));
+            // 找到第一个非数字字符的位置
+            int letterPos = 0;
+            while (letterPos < input.length() && Character.isDigit(input.charAt(letterPos))) {
+                letterPos++;
+            }
+            
+            // 如果没有找到字母或者数字部分为空，则输入格式错误
+            if (letterPos == 0 || letterPos >= input.length()) {
+                System.out.println("输入格式有误，请使用数字+字母（如：1a）");
+                return false;
+            }
+            
+            // 解析行号和列号
+            int row = Integer.parseInt(input.substring(0, letterPos)) - 1;
+            char colChar = Character.toUpperCase(input.charAt(letterPos));
             int col = colChar - 'A';
+            
+            // 验证行列是否在有效范围内
+            if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+                System.out.println("输入超出棋盘范围，请重新输入！");
+                return false;
+            }
 
             if (!isValidMove(row, col, currentPlayer.getPieceType())) {
                 System.out.println("不是合法的落子位置，请重新输入！");
@@ -176,7 +195,7 @@ public class ReversiGame extends Game {
             }
             
             // 先放置棋子再翻转
-            boolean result = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(),true);
+            boolean result = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(), true);
             if (result) {
                 flipPieces(row, col, currentPlayer.getPieceType());
             }
