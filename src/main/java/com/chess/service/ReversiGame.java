@@ -21,6 +21,9 @@ public class ReversiGame extends Game {
             boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK);
             boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK);
         }
+        
+        // 确保当前玩家是黑棋(Player 1)
+        currentPlayer = player1;
     }
     
     // 重写开始游戏方法

@@ -103,7 +103,7 @@ public class Game {
         }
     }
     
-    // 静态方法：启动游戏系统
+    // 静态方法：启动游戏系统，统一使用makeMove处理所有输入
     public static void startGameSystem() {
         initializeGames();
         
@@ -113,57 +113,28 @@ public class Game {
             currentGame.displayBoard();
             currentGame.displayGameList();
             
-            System.out.print("请输入命令（游戏序号切换游戏，peace/reversi添加新游戏，输入quit退出，其他输入继续当前游戏）：");
-            String input = currentGame.scanner.nextLine().trim();
-            
-            if (input.equalsIgnoreCase("quit")) {
-                System.out.println("游戏结束，谢谢使用！");
-                break;
-            } else if (input.equalsIgnoreCase("peace") || input.equalsIgnoreCase("reversi")) {
-                addNewGame(input);
-                continue;
-            } else {
-                try {
-                    int gameIndex = Integer.parseInt(input) - 1;
-                    if (gameIndex >= 0 && gameIndex < gameList.size()) {
-                        switchToGame(gameIndex);
-                        continue;
-                    }
-                } catch (NumberFormatException e) {
-                    // 如果不是游戏序号，继续当前游戏
-                }
-            }
-            
-            // 执行当前游戏的一轮
+            // 执行当前游戏的一轮，包括所有输入处理
             currentGame.playOneRound();
         }
     }
     
     // 执行一轮游戏
     public void playOneRound() {
-        if (!isGameEnded) {
-            makeMove();
-            switchPlayer();
-            checkGameEnd();
-        } else {
+        // 无论游戏是否结束，都使用makeMove来处理输入
+        if (isGameEnded) {
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
         }
-    }
-
-    // 开始游戏方法
-    public void start() {
-        while (!isGameEnded) {
-            checkGameEnd();
-            clearScreen();
-            displayBoard();
-            displayGameList();
-            makeMove();
+        
+        makeMove();
+        
+        if (!isGameEnded) {
             switchPlayer();
+            checkGameEnd();
+            
+            if (isGameEnded) {
+                displayGameResult();
+            }
         }
-        clearScreen();
-        displayBoard();
-        displayGameList();
-        displayGameResult();
     }
 
     // 显示游戏结果
@@ -227,16 +198,23 @@ public class Game {
         System.out.println();
     }
 
-    // 处理落子
+    // 处理落子，添加对quit命令的处理
     protected void makeMove() {
         boolean validMove = false;
         while (!validMove) {
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置或棋盘号(1-" + BOARD_COUNT + ")，或输入peace/reversi添加新游戏，或输入游戏序号切换游戏：");
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置或棋盘号(1-" + BOARD_COUNT + ")，或输入peace/reversi添加新游戏，或输入游戏序号切换游戏，输入quit退出：");
             String input = scanner.nextLine().trim();
 
             if (input.isEmpty()) {
                 System.out.println("输入不能为空，请重新输入");
                 continue;
+            }
+            
+            // 检查是否为退出命令
+            if (input.equalsIgnoreCase("quit")) {
+                System.out.println("游戏结束，谢谢使用！");
+                System.exit(0); // 直接退出程序
+                return;
             }
             
             // 检查是否为添加新游戏命令
