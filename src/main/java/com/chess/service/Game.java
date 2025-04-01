@@ -209,7 +209,7 @@ public class Game {
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1A) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 退出程序(quit)：");
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 退出程序(quit)：");
             String input = scanner.nextLine().trim();
 
             if (input.isEmpty()) {
@@ -265,10 +265,10 @@ public class Game {
                 clearScreen();
                 displayBoard();
             } else {
-                System.out.println("无效的棋盘号，请输入1-" + countInitializedBoards() + "之间的数字！");
+                System.out.println("无效的棋盘号");
             }
         } catch (NumberFormatException e) {
-            System.out.println("输入格式有误，请使用1-" + countInitializedBoards() + "的数字或数字+字母（如：1a）");
+            System.out.println("输入格式有误，请使用棋盘号（如1,2）或数字+字母（如：1a）");
         }
     }
 
@@ -290,7 +290,7 @@ public class Game {
             char colChar = Character.toUpperCase(input.charAt(1));
             int col = colChar - 'A';
 
-            boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType());
+            boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(), false);
             if (!validMove) {
                 System.out.println("落子位置有误，请重新输入！");
             }

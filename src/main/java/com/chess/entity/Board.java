@@ -27,17 +27,19 @@ public class Board {
         filledPositions = 4;
     }
 
-    public boolean placePiece(int row, int col, Piece piece) {
+    public boolean placePiece(int row, int col, Piece piece, boolean isFliped) {
         if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
             return false;
         }
 
-        if (grid[row][col] != Piece.EMPTY) {
+        if (grid[row][col] != Piece.EMPTY && !isFliped) {
             return false;
         }
 
         grid[row][col] = piece;
-        filledPositions++;
+        if(!isFliped) {
+            filledPositions++;
+        }
         return true;
     }
 

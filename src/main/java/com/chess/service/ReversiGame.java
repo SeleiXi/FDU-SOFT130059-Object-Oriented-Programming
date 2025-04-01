@@ -14,10 +14,10 @@ public class ReversiGame extends Game {
     protected void initializeBoard() {
         for (int i = 0; i < BOARD_COUNT; i++) {
             // 放置初始的四个棋子
-            boards[i].placePiece(boardMiddle - 1, boardMiddle - 1, Piece.WHITE);
-            boards[i].placePiece(boardMiddle, boardMiddle, Piece.WHITE);
-            boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK);
-            boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK);
+            boards[i].placePiece(boardMiddle - 1, boardMiddle - 1, Piece.WHITE, false);
+            boards[i].placePiece(boardMiddle, boardMiddle, Piece.WHITE, false);
+            boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK, false);
+            boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK, false);
         }
         
         // 确保当前玩家是黑棋(Player 1)
@@ -175,11 +175,13 @@ public class ReversiGame extends Game {
                 return false;
             }
             
-            // 落子并翻转
-            boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType());
-            flipPieces(row, col, currentPlayer.getPieceType());
+            // 先放置棋子再翻转
+            boolean result = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(),true);
+            if (result) {
+                flipPieces(row, col, currentPlayer.getPieceType());
+            }
             
-            return true;
+            return result;
         } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
             System.out.println("输入格式有误，请使用数字+字母（如：1a）");
             return false;
@@ -267,8 +269,7 @@ public class ReversiGame extends Game {
         
         return false;
     }
-    
-    // 翻转棋子
+    // 翻转被夹住的对手棋子
     protected void flipPieces(int row, int col, Piece pieceType) {
         int[][] directions = {
             {-1, -1}, {-1, 0}, {-1, 1},
@@ -279,35 +280,27 @@ public class ReversiGame extends Game {
         Piece opponentPiece = (pieceType == Piece.BLACK) ? Piece.WHITE : Piece.BLACK;
         
         for (int[] dir : directions) {
+            ArrayList<int[]> toFlip = new ArrayList<>();
             int r = row + dir[0];
             int c = col + dir[1];
             
-            // 临时存储可能需要翻转的位置
-            ArrayList<int[]> toFlip = new ArrayList<>();
-            boolean validDirection = false;
-            
-            // 检查是否有对手棋子相邻
+            // 收集一条直线上的对手棋子
             while (isWithinBoard(r, c) && boards[currentBoardIndex].getPiece(r, c) == opponentPiece) {
                 toFlip.add(new int[]{r, c});
                 r += dir[0];
                 c += dir[1];
-                
-                // 如果找到自己的棋子，则这个方向有效
-                if (isWithinBoard(r, c) && boards[currentBoardIndex].getPiece(r, c) == pieceType) {
-                    validDirection = true;
-                    break;
-                }
             }
             
-            // 如果这个方向有效，翻转所有棋子
-            if (validDirection) {
+            // 只有当这条线上最后遇到自己的棋子时，才翻转中间的对手棋子
+            if (isWithinBoard(r, c) && boards[currentBoardIndex].getPiece(r, c) == pieceType && !toFlip.isEmpty()) {
                 for (int[] pos : toFlip) {
-                    boards[currentBoardIndex].placePiece(pos[0], pos[1], pieceType);
+                    System.out.println("翻转棋子：" + pos[0] + "," + pos[1] + " " + pieceType.getSymbol());
+                    boards[currentBoardIndex].placePiece(pos[0], pos[1], pieceType,true);
                 }
             }
         }
     }
-    
+
     // 计算特定类型棋子的数量
     protected int countPieces(Piece pieceType) {
         int count = 0;
@@ -322,7 +315,7 @@ public class ReversiGame extends Game {
     }
     
     // 检查坐标是否在棋盘内
-    protected boolean isWithinBoard(int row, int col) {
+    private boolean isWithinBoard(int row, int col) {
         return row >= 0 && row < boardSize && col >= 0 && col < boardSize;
     }
 } 
