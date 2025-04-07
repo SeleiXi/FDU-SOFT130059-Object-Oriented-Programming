@@ -2,9 +2,9 @@ name: Build and Push Docker Image for the Java Maven project
 
 on:
   push:
-    branches: [master,Lab2,Lab3]
+    branches: [master,Lab1,Lab2,Lab3,Lab4,Lab5]
   pull_request:
-    branches: [master,Lab2,Lab3]
+    branches: [master,Lab1,Lab2,Lab3,Lab4,Lab5]
 
 jobs:
   build:
