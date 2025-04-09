@@ -19,6 +19,7 @@ public class ReversiGame extends Game {
             boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK, false);
             boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK, false);
         }
+//        fulfillBoardExceptForOne(Piece.BLACK);
         
         // 确保当前玩家是黑棋(Player 1)
         currentPlayer = player1;
@@ -38,12 +39,10 @@ public class ReversiGame extends Game {
         //     switchPlayer();
             
             // 如果下一个玩家也没有合法落子，游戏结束
-        // TODO: 这里的问题，这一条自动被判定，且无限循环了
         if (!hasValidMove(player1) && !hasValidMove(player2)) {
                 isGameEnded = true;
                 System.out.println("两位玩家都没有合法落子位置，游戏结束！");
                 displayGameResult();
-                return;
         }   
         // }
         

@@ -371,36 +371,25 @@ public class Game {
     protected void switchPlayer() {
         currentPlayer = (currentPlayer == player1) ? player2 : player1;
     }
-    
-    /**
-     * 填充棋盘的方法，可用于测试或特定场景设置
-     * @param pieceType 要填充的棋子类型
-     */
-    public void fillBoard(Piece pieceType) {
+
+    public void fulfillBoardExceptForOne(Piece pieceType) {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 boards[currentBoardIndex].placePiece(i, j, pieceType, true);
-            }
-        }
-    }
-    
-    /**
-     * 按照指定的模式填充棋盘
-     * @param pattern 二维数组，表示棋盘上应放置的棋子类型
-     */
-    public void fillBoardWithPattern(Piece[][] pattern) {
-        if (pattern == null) {
-            throw new IllegalArgumentException("棋盘模式不能为空");
-        }
-        
-        int rows = Math.min(pattern.length, boardSize);
-        for (int i = 0; i < rows; i++) {
-            int cols = Math.min(pattern[i].length, boardSize);
-            for (int j = 0; j < cols; j++) {
-                if (pattern[i][j] != null) {
-                    boards[currentBoardIndex].placePiece(i, j, pattern[i][j], true);
+                if(i==boardMiddle && j==boardMiddle){
+                    boards[currentBoardIndex].placePiece(i, j, Piece.EMPTY, true);;
+                }
+                if(i==boardMiddle+1 && j==boardMiddle+1){
+                    boards[currentBoardIndex].placePiece(i, j, Piece.WHITE, true);
                 }
             }
         }
     }
+
+
+
+
+
+
+
 }
