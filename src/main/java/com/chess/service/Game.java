@@ -288,7 +288,10 @@ public class Game {
                 processBoardSelection(input);
             } else if (input.length() >= 2) {
                 validMove = processMoveInput(input);
-                switchPlayer();
+                if(validMove==true){
+                    switchPlayer();
+                }
+
             } else {
                 System.out.println("输入格式有误，请使用1-" + validBoardCount + "的数字或数字+字母（如：1a）");
             }
