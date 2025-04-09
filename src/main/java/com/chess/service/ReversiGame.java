@@ -33,18 +33,20 @@ public class ReversiGame extends Game {
         }
         
         // 处理没有合法落子的情况
-        if (!hasValidMove(currentPlayer)) {
-            System.out.println("玩家[" + currentPlayer.getName() + "]没有合法落子位置，弃权一次");
-            switchPlayer();
+        // if (!hasValidMove(currentPlayer)) {
+        //     System.out.println("玩家[" + currentPlayer.getName() + "]没有合法落子位置，弃权一次");
+        //     switchPlayer();
             
             // 如果下一个玩家也没有合法落子，游戏结束
-            if (!hasValidMove(currentPlayer)) {
+        // TODO: 这里的问题，这一条自动被判定，且无限循环了
+        if (!hasValidMove(player1) && !hasValidMove(player2)) {
                 isGameEnded = true;
                 System.out.println("两位玩家都没有合法落子位置，游戏结束！");
                 displayGameResult();
                 return;
-            }
-        }
+        }   
+        // }
+        
         
         makeMove(true);
         // switchPlayer();
