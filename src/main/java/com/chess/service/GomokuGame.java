@@ -40,7 +40,7 @@ public class GomokuGame extends Game {
     private void makeMoveAfterGameEnd() {
         boolean validMove = false;
         while (!validMove) {
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入游戏编号 (如1,2) / 新游戏类型(peace,reversi，gomoku) / 退出程序(quit)：");
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入游戏编号 (如1,2) / 新游戏类型(peace,reversi,gomoku) / 退出程序(quit)：");
  
             String input = scanner.nextLine().trim();
 
@@ -134,10 +134,10 @@ public class GomokuGame extends Game {
                         (1 == currentGameIndex ? " (当前)" : "") : ""));
             } else if (i == 6) {
                 // 在Player2下面显示当前回合数
-                System.out.print("  当前回合: " + currentRound);
+                System.out.print("  当前回合: " + currentRound + "       " + "3. " + gameList.get(2).gameMode.getName());
             } else if (i >= 7 && i < 7 + gameList.size() - 2) {
                 // 从第三个游戏开始，顺序显示剩余的游戏列表项
-                int gameIndex = i - 7 + 2; // 从第三个游戏(索引2)开始
+                int gameIndex = i - 7 + 3; // 从第4个游戏(索引3)开始
                 if (gameIndex < gameList.size()) {
                     System.out.print("                    " + (gameIndex + 1) + ". " + 
                             gameList.get(gameIndex).gameMode.getName() + 
