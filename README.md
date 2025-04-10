@@ -1,7 +1,7 @@
 # Lab4
 ---
 
-Github：[https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/tree/Lab3](https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/tree/Lab3)
+Github：[https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/tree/Lab3](https://github.com/SeleiXi/FDU-SOFT130059-Object-Oriented-Programming/tree/Lab4)
 
 ---
 

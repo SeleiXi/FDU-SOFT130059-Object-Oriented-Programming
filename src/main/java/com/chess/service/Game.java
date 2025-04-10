@@ -155,6 +155,27 @@ public class Game {
         }
     }
 
+    // 判断是否有合法落子位置
+    protected boolean hasValidMove(Player player) {
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if (isValidMove(i, j, player.getPieceType())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    // 判断位置是否为合法落子位置
+    protected boolean isValidMove(int row, int col, Piece pieceType) {
+        // 基本检查：位置必须在棋盘内且为空
+        if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+            return false;
+        }
+        return boards[currentBoardIndex].getPiece(row, col) == Piece.EMPTY;
+    }
+    
     // 清屏
     protected void clearScreen() {
         for (int i = 0; i < SCREEN_CLEAR_LINES; i++) {
@@ -238,8 +259,16 @@ public class Game {
                 continue;
             }
 
-            if(isReversi && input.equalsIgnoreCase("pass")) {
-                switchPlayer();
+            if(input.equalsIgnoreCase("pass")) {
+                if(!isReversi) {
+                    System.out.println("当前游戏不是Reversi模式，不能Pass");
+                }
+                else if(!hasValidMove(currentPlayer)) {  
+                    switchPlayer();
+                }
+                else{
+                    System.out.println("当前游戏不是处于对局状态且你不能落子的情况，不能Pass");
+                }
                 continue;
             }
             
@@ -259,7 +288,10 @@ public class Game {
                 processBoardSelection(input);
             } else if (input.length() >= 2) {
                 validMove = processMoveInput(input);
-                switchPlayer();
+                if(validMove==true){
+                    switchPlayer();
+                }
+
             } else {
                 System.out.println("输入格式有误，请使用1-" + validBoardCount + "的数字或数字+字母（如：1a）");
             }
@@ -326,6 +358,8 @@ public class Game {
                 return false;
             }
             
+            switchPlayer();
+            
             return true;
         } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
             System.out.println("输入格式有误，请使用数字+字母（如：1a）");
@@ -337,4 +371,25 @@ public class Game {
     protected void switchPlayer() {
         currentPlayer = (currentPlayer == player1) ? player2 : player1;
     }
+
+    public void fulfillBoardExceptForOne(Piece pieceType) {
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                boards[currentBoardIndex].placePiece(i, j, pieceType, true);
+                if(i==boardMiddle && j==boardMiddle){
+                    boards[currentBoardIndex].placePiece(i, j, Piece.EMPTY, true);;
+                }
+                if(i==boardMiddle+1 && j==boardMiddle+1){
+                    boards[currentBoardIndex].placePiece(i, j, Piece.WHITE, true);
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
 }
