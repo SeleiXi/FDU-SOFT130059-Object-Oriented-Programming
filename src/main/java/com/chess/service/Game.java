@@ -77,7 +77,7 @@ public class Game {
     // 初始化棋盘方法，由子类实现具体逻辑
     protected void initializeBoard() {
         for (int i = 0; i < BOARD_COUNT; i++) {
-            // 放置初始的四个棋子
+            // 放置初始的中间的四个棋子
             boards[i].placePiece(boardMiddle - 1, boardMiddle - 1, Piece.WHITE, false);
             boards[i].placePiece(boardMiddle, boardMiddle, Piece.WHITE, false);
             boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK, false);
@@ -94,6 +94,7 @@ public class Game {
         if (gameList.isEmpty()) {
             gameList.add(new Game("Player1", "Player2", GameMode.PEACE, 1));
             gameList.add(new ReversiGame("Player1", "Player2", 2));
+            gameList.add(new GomokuGame("Player1", "Player2", 3));
             currentGameIndex = 0; // 从第一个游戏开始
         }
     }
@@ -135,20 +136,19 @@ public class Game {
     public void playOneRound() {
         // 无论游戏是否结束，都使用makeMove来处理输入
         if (isGameEnded) {
+            displayGameResult();
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
+            makeMove(true);
             // 不能return，否则会无限循环，因为没有进入makeMove从而进入input()等待
             // return;
+            
         }
         
-        makeMove(false);
-        
-        if (!isGameEnded) {
+        else {
+            makeMove(false);
             // switchPlayer();
             checkGameEnd();
             
-            if (isGameEnded) {
-                displayGameResult();
-            }
         }
     }
 
@@ -241,11 +241,11 @@ public class Game {
     }
 
     // 处理落子，添加对quit命令的处理
-    protected void makeMove(boolean havePassMethod) {
+    protected void makeMove(boolean hasPassMethod) {
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
-            if (havePassMethod) {
+            if (hasPassMethod) {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 跳过行棋（Pass） / 退出程序(quit)：");
             } else {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 退出程序(quit)：");
@@ -275,7 +275,7 @@ public class Game {
             }
 
             if(input.equalsIgnoreCase("pass")) {
-                if(!havePassMethod) {
+                if(!hasPassMethod) {
                     System.out.println("当前游戏不是Reversi模式，不能Pass");
                 }
                 else if(!hasValidMove(currentPlayer)) {  
@@ -373,7 +373,6 @@ public class Game {
                 return false;
             }
             
-            // switchPlayer();
             
             return true;
         } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
