@@ -11,7 +11,8 @@ public class Game {
     // 游戏模式枚举
     public enum GameMode {
         PEACE("peace"),
-        REVERSI("reversi");
+        REVERSI("reversi"),
+        GOMOKU("gomoku");
         
         private final String name;
         
@@ -51,7 +52,7 @@ public class Game {
         
         boards = new Board[BOARD_COUNT];
         for (int i = 0; i < BOARD_COUNT; i++) {
-            boards[i] = new Board();
+            boards[i] = new Board(true);
         }
         currentBoardIndex = 0;
         
@@ -75,7 +76,17 @@ public class Game {
     
     // 初始化棋盘方法，由子类实现具体逻辑
     protected void initializeBoard() {
-        // 和平模式不需要特殊初始化，保持空棋盘
+        for (int i = 0; i < BOARD_COUNT; i++) {
+            // 放置初始的四个棋子
+            boards[i].placePiece(boardMiddle - 1, boardMiddle - 1, Piece.WHITE, false);
+            boards[i].placePiece(boardMiddle, boardMiddle, Piece.WHITE, false);
+            boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK, false);
+            boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK, false);
+        }
+//        fulfillBoardExceptForOne(Piece.BLACK);
+        
+        // 确保当前玩家是黑棋(Player 1)
+        currentPlayer = player1;
     }
 
     // 静态方法：初始化游戏列表
@@ -93,6 +104,8 @@ public class Game {
             gameList.add(new Game("Player1", "Player2", GameMode.PEACE, gameList.size() + 1));
         } else if (gameType.equalsIgnoreCase("reversi")) {
             gameList.add(new ReversiGame("Player1", "Player2", gameList.size() + 1));
+        } else if (gameType.equalsIgnoreCase("gomoku")) {
+            gameList.add(new GomokuGame("Player1", "Player2", gameList.size() + 1));
         }
         BOARD_COUNT++;
     }
@@ -228,11 +241,11 @@ public class Game {
     }
 
     // 处理落子，添加对quit命令的处理
-    protected void makeMove(boolean isReversi) {
+    protected void makeMove(boolean havePassMethod) {
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
-            if (isReversi) {
+            if (havePassMethod) {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 跳过行棋（Pass） / 退出程序(quit)：");
             } else {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi) / 退出程序(quit)：");
@@ -252,7 +265,9 @@ public class Game {
             }
             
             // 检查是否为添加新游戏命令
-            if (input.equalsIgnoreCase("peace") || input.equalsIgnoreCase("reversi")) {
+
+            // TODO：改成从参数表里面读
+            if (input.equalsIgnoreCase("peace") || input.equalsIgnoreCase("reversi") || input.equalsIgnoreCase("gomoku")) {
                 addNewGame(input);
                 clearScreen();
                 displayBoard();
@@ -260,7 +275,7 @@ public class Game {
             }
 
             if(input.equalsIgnoreCase("pass")) {
-                if(!isReversi) {
+                if(!havePassMethod) {
                     System.out.println("当前游戏不是Reversi模式，不能Pass");
                 }
                 else if(!hasValidMove(currentPlayer)) {  

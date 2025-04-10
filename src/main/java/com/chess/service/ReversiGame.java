@@ -2,7 +2,6 @@ package com.chess.service;
 
 import java.util.ArrayList;
 import com.chess.entity.Piece;
-import com.chess.entity.Player;
 
 public class ReversiGame extends Game {
     
@@ -10,20 +9,20 @@ public class ReversiGame extends Game {
         super(player1Name, player2Name, GameMode.REVERSI, gameId);
     }
     
-    @Override
-    protected void initializeBoard() {
-        for (int i = 0; i < BOARD_COUNT; i++) {
-            // 放置初始的四个棋子
-            boards[i].placePiece(boardMiddle - 1, boardMiddle - 1, Piece.WHITE, false);
-            boards[i].placePiece(boardMiddle, boardMiddle, Piece.WHITE, false);
-            boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK, false);
-            boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK, false);
-        }
-//        fulfillBoardExceptForOne(Piece.BLACK);
+//     @Override
+//     protected void initializeBoard() {
+//         for (int i = 0; i < BOARD_COUNT; i++) {
+//             // 放置初始的四个棋子
+//             boards[i].placePiece(boardMiddle - 1, boardMiddle - 1, Piece.WHITE, false);
+//             boards[i].placePiece(boardMiddle, boardMiddle, Piece.WHITE, false);
+//             boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK, false);
+//             boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK, false);
+//         }
+// //        fulfillBoardExceptForOne(Piece.BLACK);
         
-        // 确保当前玩家是黑棋(Player 1)
-        currentPlayer = player1;
-    }
+//         // 确保当前玩家是黑棋(Player 1)
+//         currentPlayer = player1;
+//     }
     
     
     @Override
