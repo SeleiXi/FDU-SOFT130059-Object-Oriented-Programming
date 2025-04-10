@@ -373,7 +373,7 @@ public class Game {
                 return false;
             }
             
-            switchPlayer();
+            // switchPlayer();
             
             return true;
         } catch (NumberFormatException | StringIndexOutOfBoundsException e) {

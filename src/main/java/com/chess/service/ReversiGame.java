@@ -9,45 +9,20 @@ public class ReversiGame extends Game {
         super(player1Name, player2Name, GameMode.REVERSI, gameId);
     }
     
-//     @Override
-//     protected void initializeBoard() {
-//         for (int i = 0; i < BOARD_COUNT; i++) {
-//             // 放置初始的四个棋子
-//             boards[i].placePiece(boardMiddle - 1, boardMiddle - 1, Piece.WHITE, false);
-//             boards[i].placePiece(boardMiddle, boardMiddle, Piece.WHITE, false);
-//             boards[i].placePiece(boardMiddle - 1, boardMiddle, Piece.BLACK, false);
-//             boards[i].placePiece(boardMiddle, boardMiddle - 1, Piece.BLACK, false);
-//         }
-// //        fulfillBoardExceptForOne(Piece.BLACK);
-        
-//         // 确保当前玩家是黑棋(Player 1)
-//         currentPlayer = player1;
-//     }
-    
     
     @Override
     public void playOneRound() {
         if (isGameEnded) {
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
-            // return;
         }
         
-        // 处理没有合法落子的情况
-        // if (!hasValidMove(currentPlayer)) {
-        //     System.out.println("玩家[" + currentPlayer.getName() + "]没有合法落子位置，弃权一次");
-        //     switchPlayer();
-            
-            // 如果下一个玩家也没有合法落子，游戏结束
         if (!hasValidMove(player1) && !hasValidMove(player2)) {
                 isGameEnded = true;
                 System.out.println("两位玩家都没有合法落子位置，游戏结束！");
                 displayGameResult();
         }   
-        // }
-        
         
         makeMove(true);
-        // switchPlayer();
         checkGameEnd();
     }
     
