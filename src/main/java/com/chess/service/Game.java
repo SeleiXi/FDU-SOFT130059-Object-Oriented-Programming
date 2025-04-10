@@ -136,7 +136,6 @@ public class Game {
     public void playOneRound() {
         // 无论游戏是否结束，都使用makeMove来处理输入
         if (isGameEnded) {
-            displayGameResult();
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
             makeMove(true);
             // 不能return，否则会无限循环，因为没有进入makeMove从而进入input()等待
@@ -240,7 +239,6 @@ public class Game {
         System.out.println();
     }
 
-    // 处理落子，添加对quit命令的处理
     protected void makeMove(boolean hasPassMethod) {
         boolean validMove = false;
         while (!validMove) {
@@ -257,10 +255,9 @@ public class Game {
                 continue;
             }
             
-            // 检查是否为退出命令
             if (input.equalsIgnoreCase("quit")) {
                 System.out.println("游戏结束，谢谢使用！");
-                System.exit(0); // 直接退出程序
+                System.exit(0); 
                 return;
             }
             

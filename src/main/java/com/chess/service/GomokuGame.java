@@ -20,6 +20,76 @@ public class GomokuGame extends Game {
     }
     
     @Override
+    public void playOneRound() {
+        // 无论游戏是否结束，都使用makeMove来处理输入
+        if (isGameEnded) {
+            displayGameResult();
+            System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
+            makeMoveAfterGameEnd();
+            
+        }
+        
+        else {
+            makeMove(false);
+            // switchPlayer();
+            checkGameEnd();
+            
+        }
+    }
+
+    private void makeMoveAfterGameEnd() {
+        boolean validMove = false;
+        while (!validMove) {
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入游戏编号 (如1,2) / 新游戏类型(peace,reversi，gomoku) / 退出程序(quit)：");
+ 
+            String input = scanner.nextLine().trim();
+
+            if (input.isEmpty()) {
+                System.out.println("输入不能为空，请重新输入");
+                continue;
+            }
+            
+            if (input.equalsIgnoreCase("quit")) {
+                System.out.println("游戏结束，谢谢使用！");
+                System.exit(0); 
+                return;
+            }
+            
+            // 检查是否为添加新游戏命令
+
+            // TODO：改成从参数表里面读
+            if (input.equalsIgnoreCase("peace") || input.equalsIgnoreCase("reversi") || input.equalsIgnoreCase("gomoku")) {
+                addNewGame(input);
+                clearScreen();
+                displayBoard();
+                // continue是因为需要保留在原本的游戏里面,因此还需要判定一次valid的move
+                continue;
+            }
+
+            
+            try {
+                int gameIndex = Integer.parseInt(input) - 1;
+                if (gameIndex >= 0 && gameIndex < gameList.size()) {
+                    switchToGame(gameIndex);
+                    return; // 切换游戏后退出当前循环
+                }
+            } catch (NumberFormatException e) {
+                // 继续处理其他输入类型
+            }
+            
+            // 切换棋盘
+            if (input.length() == 1) {
+                processBoardSelection(input);
+            } 
+
+            else {
+                System.out.println("输入格式有误，请使用如(1,2)的棋盘号的数字。");
+            }
+        }
+    }
+        
+
+    @Override
     protected boolean processMoveInput(String input) {
         boolean result = super.processMoveInput(input);
         
