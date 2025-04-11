@@ -44,7 +44,7 @@ public class Game {
     protected int currentBoardIndex;
     protected Player currentPlayer;
     protected boolean isGameEnded;
-
+    protected String[] GameModeList;
     // 构造函数，添加游戏模式和ID参数
     public Game(String player1Name, String player2Name, GameMode gameMode, int gameId) {
         this.gameMode = gameMode;
@@ -64,6 +64,10 @@ public class Game {
         boardSize = boards[0].getSize();
         boardMiddle = boardSize / 2;
         isGameEnded = false;
+        GameModeList = new String[GameMode.values().length];
+        for(int i = 0; i < GameMode.values().length; i++){
+            GameModeList[i] = GameMode.values()[i].getName();
+        }
         
         // 初始化棋盘（具体由子类实现）
         initializeBoard();
@@ -216,12 +220,12 @@ public class Game {
                 System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")    游戏列表");
             } else if (i == 4) {
                 System.out.print("  玩家[" + player1.getName() + "] " +
-                        (currentPlayer == player1 ? player1.getPieceType().getSymbol() : "") + "   " + 
+                        (currentPlayer == player1 ? player1.getPieceType().getSymbol()+ "   "  : "    ") +  
                         (0 < gameList.size() ? "1. " + gameList.get(0).gameMode.getName() + 
                         (0 == currentGameIndex ? " (当前)" : "") : ""));
             } else if (i == 5) {
                 System.out.print("  玩家[" + player2.getName() + "] " +
-                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() : "") + "    " + 
+                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() + "   " : "    ") +
                         (1 < gameList.size() ? "2. " + gameList.get(1).gameMode.getName() + 
                         (1 == currentGameIndex ? " (当前)" : "") : ""));
             } else if (i >= 6 && i < 6 + gameList.size() - 2) {
@@ -244,9 +248,9 @@ public class Game {
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
             if (hasPassMethod) {
-                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi,gomoku) / 跳过行棋（Pass） / 退出程序(quit)：");
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 退出程序(quit)：");
             } else {
-                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi,gomoku) / 退出程序(quit)：");
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ")  / 退出程序(quit)：");
             }
             String input = scanner.nextLine().trim();
 
@@ -263,13 +267,26 @@ public class Game {
             
             // 检查是否为添加新游戏命令
 
-            // TODO：改成从参数表里面读
-            if (input.equalsIgnoreCase("peace") || input.equalsIgnoreCase("reversi") || input.equalsIgnoreCase("gomoku")) {
-                addNewGame(input);
-                clearScreen();
-                displayBoard();
+            // 因为不能直接for里面continue，所以需要一个变量来控制是否继续当前轮（否则后面会重复判定输入格式error）
+            boolean continueRound = false;
+            for (GameMode mode : GameMode.values()){
+                if(input.equalsIgnoreCase(mode.getName())){
+                    addNewGame(mode.getName());
+                    clearScreen();
+                    displayBoard();
+                    continueRound = true;
+                    break;
+                }
+            }
+            if(continueRound){
                 continue;
             }
+            // if (input.equalsIgnoreCase ("peace") || input.equalsIgnoreCase("reversi") || input.equalsIgnoreCase("gomoku")) {
+            //     addNewGame(input);
+            //     clearScreen();
+            //     displayBoard();
+            //     continue;
+            // }
 
             if(input.equalsIgnoreCase("pass")) {
                 if(!hasPassMethod) {
