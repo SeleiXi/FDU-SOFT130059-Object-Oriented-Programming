@@ -216,12 +216,12 @@ public class Game {
                 System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")    游戏列表");
             } else if (i == 4) {
                 System.out.print("  玩家[" + player1.getName() + "] " +
-                        (currentPlayer == player1 ? player1.getPieceType().getSymbol() : "") + "   " + 
+                        (currentPlayer == player1 ? player1.getPieceType().getSymbol()+ "   "  : "    ") +  
                         (0 < gameList.size() ? "1. " + gameList.get(0).gameMode.getName() + 
                         (0 == currentGameIndex ? " (当前)" : "") : ""));
             } else if (i == 5) {
                 System.out.print("  玩家[" + player2.getName() + "] " +
-                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() : "") + "    " + 
+                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() + "   " : "    ") +
                         (1 < gameList.size() ? "2. " + gameList.get(1).gameMode.getName() + 
                         (1 == currentGameIndex ? " (当前)" : "") : ""));
             } else if (i >= 6 && i < 6 + gameList.size() - 2) {
