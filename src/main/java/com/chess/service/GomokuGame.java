@@ -40,7 +40,7 @@ public class GomokuGame extends Game {
     private void makeMoveAfterGameEnd() {
         boolean validMove = false;
         while (!validMove) {
-            System.out.print("请玩家[" + currentPlayer.getName() + "]输入游戏编号 (如1,2) / 新游戏类型(peace,reversi,gomoku) / 退出程序(quit)：");
+            System.out.print("请玩家[" + currentPlayer.getName() + "]输入游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 退出程序(quit)：");
  
             String input = scanner.nextLine().trim();
 
@@ -57,14 +57,28 @@ public class GomokuGame extends Game {
             
             // 检查是否为添加新游戏命令
 
-            // TODO：改成从参数表里面读
-            if (input.equalsIgnoreCase("peace") || input.equalsIgnoreCase("reversi") || input.equalsIgnoreCase("gomoku")) {
-                addNewGame(input);
-                clearScreen();
-                displayBoard();
-                // continue是因为需要保留在原本的游戏里面,因此还需要判定一次valid的move
-                continue;
+
+            boolean breakRound = false;
+            for (GameMode mode : GameMode.values()){
+                if(input.equalsIgnoreCase(mode.getName())){
+                    addNewGame(mode.getName());
+                    clearScreen();
+                    displayBoard();
+                    breakRound = true;
+                    break;
+                }
             }
+            if(breakRound){
+                break;
+            }
+
+            // if (input.equalsIgnoreCase("peace") || input.equalsIgnoreCase("reversi") || input.equalsIgnoreCase("gomoku")) {
+            //     addNewGame(input);
+            //     clearScreen();
+            //     displayBoard();
+            //     // continue是因为需要保留在原本的游戏里面,因此还需要判定一次valid的move
+            //     continue;
+            // }
 
             
             try {
