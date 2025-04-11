@@ -148,8 +148,9 @@ public class GomokuGame extends Game {
                         (1 == currentGameIndex ? " (当前)" : "") : ""));
             } else if (i == 6) {
                 // 在Player2下面显示当前回合数
-                System.out.print("  当前回合: " + currentRound + "       " + "3. " + gameList.get(2).gameMode.getName());
-            } else if (i >= 7 && i < 7 + gameList.size() - 2) {
+
+                System.out.print("  当前回合: " + currentRound + "       " + "3. " + gameList.get(2).gameMode.getName() + (2 == currentGameIndex ? " (当前)" : ""));
+            } else if (i >= 7 && i < 7 + gameList.size() - 3) {
                 // 从第三个游戏开始，顺序显示剩余的游戏列表项
                 int gameIndex = i - 7 + 3; // 从第4个游戏(索引3)开始
                 if (gameIndex < gameList.size()) {
@@ -157,6 +158,7 @@ public class GomokuGame extends Game {
                             gameList.get(gameIndex).gameMode.getName() + 
                             (gameIndex == currentGameIndex ? " (当前)" : ""));
                 }
+                
             }
 
             System.out.println();
