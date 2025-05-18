@@ -1,34 +1,41 @@
 package com.chess.entity;
 
 public class Board {
-    private static final int SIZE = 8;
+    protected static final int DEFAULT_SIZE = 8;
+    protected int size;
     private Piece[][] grid;
     private int filledPositions;
 
     public Board(boolean isFullyEmpty) {
-        grid = new Piece[SIZE][SIZE];
+        this(DEFAULT_SIZE, isFullyEmpty);
+    }
+    
+    public Board(int size, boolean isFullyEmpty) {
+        this.size = size;
+        grid = new Piece[size][size];
         filledPositions = 0;
         initializeBoard(isFullyEmpty);
     }
 
     private void initializeBoard(boolean isFullyEmpty) {
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 grid[i][j] = Piece.EMPTY;
             }
         }
         if (!isFullyEmpty) {
             // 设置初始布局：⿊棋位于 4E 和 5D，⽩棋位于 4D 和 5E
-            grid[3][4] = Piece.BLACK; // 4E
-            grid[4][3] = Piece.BLACK; // 5D
-            grid[3][3] = Piece.WHITE; // 4D
-            grid[4][4] = Piece.WHITE; // 5E
+            int middle = size / 2;
+            grid[middle-1][middle] = Piece.BLACK; // 4E
+            grid[middle][middle-1] = Piece.BLACK; // 5D
+            grid[middle-1][middle-1] = Piece.WHITE; // 4D
+            grid[middle][middle] = Piece.WHITE; // 5E
         }
         filledPositions = 4;
     }
 
     public boolean placePiece(int row, int col, Piece piece, boolean isFliped) {
-        if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
+        if (row < 0 || row >= size || col < 0 || col >= size) {
             return false;
         }
 
@@ -44,7 +51,7 @@ public class Board {
     }
 
     public boolean isFull() {
-        return filledPositions >= SIZE * SIZE;
+        return filledPositions >= size * size;
     }
 
     public Piece getPiece(int row, int col) {
@@ -52,6 +59,6 @@ public class Board {
     }
 
     public int getSize() {
-        return SIZE;
+        return size;
     }
 }

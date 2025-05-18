@@ -2,6 +2,7 @@ package com.chess.service;
 
 import com.chess.entity.Piece;
 import com.chess.entity.Player;
+import com.chess.entity.GomokuBoard;
 
 public class GomokuGame extends Game {
     
@@ -13,7 +14,12 @@ public class GomokuGame extends Game {
     
     @Override
     protected void initializeBoard() {
-        // 五子棋初始棋盘为空，不需要放置任何棋子
+        // 使用GomokuBoard替换默认的Board
+        for (int i = 0; i < BOARD_COUNT; i++) {
+            boards[i] = new GomokuBoard(true);
+        }
+        boardSize = boards[0].getSize();
+        boardMiddle = boardSize / 2;
         
         // 确保当前玩家是黑棋(Player 1)
         currentPlayer = player1;
@@ -105,26 +111,52 @@ public class GomokuGame extends Game {
 
     @Override
     protected boolean processMoveInput(String input) {
-        boolean result = super.processMoveInput(input);
-        
-        // 如果落子成功，增加回合数
-        if (result) {
+        try {
+            input = input.toUpperCase();
+            if (input.length() < 2) {
+                System.out.println("输入格式有误，请使用纵坐标+横坐标（如：1A / FA）");
+                return false;
+            }
+            String rowStr = input.substring(0, input.length() - 1);
+            String colStr = input.substring(input.length() - 1);
+
+            int row = GomokuBoard.parseRowLabel(rowStr);
+            int col = GomokuBoard.parseColLabel(colStr);
+
+            if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+                System.out.println("输入超出棋盘范围，请重新输入！");
+                return false;
+            }
+
+            boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(), false);
+            if (!validMove) {
+                System.out.println("落子位置有误，请重新输入！");
+                return false;
+            }
+
             if (currentPlayer == player1) {
                 currentRound++;
             }
+            return true;
+        } catch (Exception e) {
+            System.out.println("输入格式有误，请使用纵坐标+横坐标（如：1A / FA）");
+            return false;
         }
-        
-        return result;
     }
     
     @Override
     protected void displayBoard() {
-        System.out.println("  A B C D E F G H");
+        // 显示列标签 (A-O)
+        System.out.print(" ");
+        for (int j = 0; j < boardSize; j++) {
+            System.out.print(" " + GomokuBoard.getColLabel(j));
+        }
+        System.out.println();
         
         for (int i = 0; i < Math.max(boardSize, 6 + gameList.size() - 2); i++) {
             // 显示棋盘行（如果在棋盘范围内）
             if (i < boardSize) {
-                System.out.print((i + 1));
+                System.out.print(GomokuBoard.getRowLabel(i));
                 for (int j = 0; j < boardSize; j++) {
                     System.out.print(" " + boards[currentBoardIndex].getPiece(i, j).getSymbol());
                 }
@@ -148,7 +180,6 @@ public class GomokuGame extends Game {
                         (1 == currentGameIndex ? " (当前)" : "") : ""));
             } else if (i == 6) {
                 // 在Player2下面显示当前回合数
-
                 System.out.print("  当前回合: " + currentRound + "       " + "3. " + gameList.get(2).gameMode.getName() + (2 == currentGameIndex ? " (当前)" : ""));
             } else if (i >= 7 && i < 7 + gameList.size() - 3) {
                 // 从第三个游戏开始，顺序显示剩余的游戏列表项
@@ -158,7 +189,6 @@ public class GomokuGame extends Game {
                             gameList.get(gameIndex).gameMode.getName() + 
                             (gameIndex == currentGameIndex ? " (当前)" : ""));
                 }
-                
             }
 
             System.out.println();
@@ -174,7 +204,7 @@ public class GomokuGame extends Game {
                 Piece currentPiece = boards[currentBoardIndex].getPiece(i, j);
                 if (currentPiece != Piece.EMPTY) {
                     // 检查水平方向
-                    if (j <= boardSize - 5) {
+                    if (j <= boardSize - 5) { // 五子棋，因此一定是5
                         boolean win = true;
                         for (int k = 1; k < 5; k++) {
                             if (boards[currentBoardIndex].getPiece(i, j + k) != currentPiece) {
