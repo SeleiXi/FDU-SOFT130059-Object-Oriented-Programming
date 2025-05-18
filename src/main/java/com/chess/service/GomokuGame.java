@@ -381,16 +381,19 @@ public class GomokuGame extends Game {
 
     // Demo模式自动演示
     private void runDemo() {
+        // 另外起一个新游戏来进行该demo
+        Game demoGame = new GomokuGame("Demo", "Demo", 999);
+
         // 黑方依次1A~7A，白方依次1B~5B，黑方在4A后用炸弹@3A
         String[] blackMoves = {"1A", "2A", "3A", "4A", "5A","6A"};
         String[] whiteMoves = {"1B", "2B", "3B", "@3A", "4B", "5B"};
         int bIdx = 0, wIdx = 0;
         // boolean afterBomb = false;
         while (!isGameEnded && (bIdx < blackMoves.length || wIdx < whiteMoves.length)) {
-            if (currentPlayer == player1 && bIdx < blackMoves.length) {
+            if (demoGame.currentPlayer == demoGame.player1 && bIdx < blackMoves.length) {
                 String move = blackMoves[bIdx++];
-                processMoveInput(move);
-                displayBoard();
+                demoGame.processMoveInput(move);
+                demoGame.displayBoard();
                 System.out.println("上述操作为黑方输入了 " + move);
 
                 // if (move.startsWith("@")) {
@@ -404,32 +407,28 @@ public class GomokuGame extends Game {
                 //     displayBoard();
                 //     System.out.println("上述操作为黑方输入了 " + move);
                 // }
-                switchPlayer();
-            } else if (currentPlayer == player2 && wIdx < whiteMoves.length) {
+                demoGame.switchPlayer();
+            } else if (demoGame.currentPlayer == demoGame.player2 && wIdx < whiteMoves.length) {
                 String move = whiteMoves[wIdx++];
-                processMoveInput(move);
-                displayBoard();
+                demoGame.processMoveInput(move);
+                demoGame.displayBoard();
                 System.out.println("上述操作为白方输入了 " + move);
-                switchPlayer();
+                demoGame.switchPlayer();
             } else {
-                System.out.println("error");
+                System.out.println(demoGame.currentPlayer + " " + wIdx + " " + bIdx + "error");
                 break;
             }
-            checkGameEnd();
+            demoGame.checkGameEnd();
             try { Thread.sleep(1000); } catch (InterruptedException e) { }
         }
-        if (isGameEnded) {
-            displayGameResult();
+        if (demoGame.isGameEnded) {
+            demoGame.displayGameResult();
         } else {
             System.out.println("Demo演示已结束。");
         }
         isDemoMode = false;
-        // 清空board为初始状态
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                boards[currentBoardIndex].placePiece(i, j, Piece.EMPTY, true);
-            }
-        }
-        initializeBoard();
+        // 删除demo的该模式
+        gameList.remove(demoGame);
+
     }
 } 
