@@ -382,7 +382,8 @@ public class GomokuGame extends Game {
     // Demo模式自动演示
     private void runDemo() {
         // 另外起一个新游戏来进行该demo
-        Game demoGame = new GomokuGame("Demo", "Demo", 999);
+        Game demoGame = new GomokuGame("玩家1", "玩家2", 999);
+        currentGameIndex += 1;
 
         // 黑方依次1A~7A，白方依次1B~5B，黑方在4A后用炸弹@3A
         String[] blackMoves = {"1A", "2A", "3A", "4A", "5A","6A"};
@@ -429,6 +430,9 @@ public class GomokuGame extends Game {
         isDemoMode = false;
         // 删除demo的该模式
         gameList.remove(demoGame);
+        currentGameIndex-=1;
+        System.out.println("Demo结束！\n\n\n");
+        displayBoard();
 
     }
 } 
