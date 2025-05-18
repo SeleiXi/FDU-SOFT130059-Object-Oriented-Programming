@@ -9,6 +9,7 @@ public class GomokuGame extends Game {
     private int currentRound = 1;
     private int blackBombs = 2;
     private int whiteBombs = 3;
+    private boolean isDemoMode = false;
     
     public GomokuGame(String player1Name, String player2Name, int gameId) {
         super(player1Name, player2Name, GameMode.GOMOKU, gameId);
@@ -124,6 +125,13 @@ public class GomokuGame extends Game {
 
     @Override
     protected boolean processMoveInput(String input) {
+        input = input.trim();
+        if (input.equalsIgnoreCase("demo")) {
+            isDemoMode = true;
+            System.out.println("已进入Demo演示模式，系统将自动操作演示五子棋玩法。");
+            runDemo();
+            return false;
+        }
         try {
             input = input.toUpperCase();
             // 炸弹道具输入：@XY
@@ -369,5 +377,59 @@ public class GomokuGame extends Game {
         // 如果不是平局，则当前玩家的对手获胜（因为在落子后就检查获胜条件）
         Player winner = (currentPlayer == player1) ? player2 : player1;
         System.out.println("恭喜玩家[" + winner.getName() + "]获胜！");
+    }
+
+    // Demo模式自动演示
+    private void runDemo() {
+        // 黑方依次1A~7A，白方依次1B~5B，黑方在4A后用炸弹@3A
+        String[] blackMoves = {"1A", "2A", "3A", "4A", "5A","6A"};
+        String[] whiteMoves = {"1B", "2B", "3B", "@3A", "4B", "5B"};
+        int bIdx = 0, wIdx = 0;
+        // boolean afterBomb = false;
+        while (!isGameEnded && (bIdx < blackMoves.length || wIdx < whiteMoves.length)) {
+            if (currentPlayer == player1 && bIdx < blackMoves.length) {
+                String move = blackMoves[bIdx++];
+                processMoveInput(move);
+                displayBoard();
+                System.out.println("上述操作为黑方输入了 " + move);
+
+                // if (move.startsWith("@")) {
+                //     // 炸弹
+                //     processMoveInput(move);
+                //     displayBoard();
+                //     System.out.println("上述操作为黑方输入了 " + move);
+                //     // afterBomb = true;
+                // } else {
+                //     processMoveInput(move);
+                //     displayBoard();
+                //     System.out.println("上述操作为黑方输入了 " + move);
+                // }
+                switchPlayer();
+            } else if (currentPlayer == player2 && wIdx < whiteMoves.length) {
+                String move = whiteMoves[wIdx++];
+                processMoveInput(move);
+                displayBoard();
+                System.out.println("上述操作为白方输入了 " + move);
+                switchPlayer();
+            } else {
+                System.out.println("error");
+                break;
+            }
+            checkGameEnd();
+            try { Thread.sleep(1000); } catch (InterruptedException e) { }
+        }
+        if (isGameEnded) {
+            displayGameResult();
+        } else {
+            System.out.println("Demo演示已结束。");
+        }
+        isDemoMode = false;
+        // 清空board为初始状态
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                boards[currentBoardIndex].placePiece(i, j, Piece.EMPTY, true);
+            }
+        }
+        initializeBoard();
     }
 } 

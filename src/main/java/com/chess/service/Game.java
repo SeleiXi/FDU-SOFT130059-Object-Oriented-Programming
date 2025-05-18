@@ -244,13 +244,20 @@ public class Game {
     }
 
     protected void makeMove(boolean hasPassMethod, boolean hasBombFeature) {
+        boolean hasDemoMode = false;
+        if(hasBombFeature){
+            hasDemoMode = true;
+        }
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
             if (hasPassMethod) {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 退出程序(quit)：");
             } else if (hasBombFeature) {
-                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 炸弹道具（输入“@FA”可炸掉FA位置上的敌方的棋子，并且让该位置不可放置棋子）  / 退出程序(quit)：");
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 炸弹道具（输入“@FA”可炸掉FA位置上的敌方的棋子，并且让该位置不可放置棋子）  / 退出程序(quit)");
+                if(hasDemoMode){
+                    System.out.print(" / 演示模式（输入“demo”可演示当前游戏）：");
+                }
             }
             else {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ")  / 退出程序(quit)：");
