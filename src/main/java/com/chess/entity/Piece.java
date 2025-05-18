@@ -3,7 +3,8 @@ package com.chess.entity;
 public enum Piece {
     BLACK("○"),
     WHITE("●"),
-    EMPTY(".");
+    EMPTY("."),
+    BLOCK("#");
 
     private final String symbol;
 

@@ -20,7 +20,18 @@ public class GomokuGame extends Game {
         }
         boardSize = boards[0].getSize();
         boardMiddle = boardSize / 2;
-        
+        // 添加障碍物
+        int[][] blockPositions = {
+            {GomokuBoard.parseRowLabel("3"), GomokuBoard.parseColLabel("F")}, // 3F
+            {GomokuBoard.parseRowLabel("8"), GomokuBoard.parseColLabel("G")}, // 8G
+            {GomokuBoard.parseRowLabel("9"), GomokuBoard.parseColLabel("F")}, // 9F
+            {GomokuBoard.parseRowLabel("C"), GomokuBoard.parseColLabel("K")}  // CK
+        };
+        for (int[] pos : blockPositions) {
+            if (pos[0] >= 0 && pos[1] >= 0 && pos[0] < boardSize && pos[1] < boardSize) {
+                boards[0].placePiece(pos[0], pos[1], Piece.BLOCK, true);
+            }
+        }
         // 确保当前玩家是黑棋(Player 1)
         currentPlayer = player1;
     }
@@ -127,13 +138,16 @@ public class GomokuGame extends Game {
                 System.out.println("输入超出棋盘范围，请重新输入！");
                 return false;
             }
-
+            // 检查障碍物
+            if (boards[currentBoardIndex].getPiece(row, col) == Piece.BLOCK) {
+                System.out.println("该位置为障碍物，无法落子！");
+                return false;
+            }
             boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(), false);
             if (!validMove) {
                 System.out.println("落子位置有误，请重新输入！");
                 return false;
             }
-
             if (currentPlayer == player1) {
                 currentRound++;
             }
