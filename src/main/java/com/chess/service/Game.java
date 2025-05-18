@@ -141,14 +141,14 @@ public class Game {
         // 无论游戏是否结束，都使用makeMove来处理输入
         if (isGameEnded) {
             System.out.println("当前游戏已结束，请切换到其他游戏或添加新游戏");
-            makeMove(true);
+            makeMove(true,false);
             // 不能return，否则会无限循环，因为没有进入makeMove从而进入input()等待
             // return;
             
         }
         
         else {
-            makeMove(false);
+            makeMove(false,false);
             // switchPlayer();
             checkGameEnd();
             
@@ -243,13 +243,23 @@ public class Game {
         System.out.println();
     }
 
-    protected void makeMove(boolean hasPassMethod) {
+    protected void makeMove(boolean hasPassMethod, boolean hasBombFeature) {
+        boolean hasDemoMode = false;
+        if(hasBombFeature){
+            hasDemoMode = true;
+        }
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
             if (hasPassMethod) {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 退出程序(quit)：");
-            } else {
+            } else if (hasBombFeature) {
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 炸弹道具（输入“@FA”可炸掉FA位置上的敌方的棋子，并且让该位置不可放置棋子）  / 退出程序(quit)");
+                if(hasDemoMode){
+                    System.out.print(" / 演示模式（输入“demo”可演示当前游戏）：");
+                }
+            }
+            else {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ")  / 退出程序(quit)：");
             }
             String input = scanner.nextLine().trim();

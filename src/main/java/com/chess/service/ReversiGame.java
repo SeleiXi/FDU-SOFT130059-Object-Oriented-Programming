@@ -22,7 +22,7 @@ public class ReversiGame extends Game {
                 displayGameResult();
         }   
         
-        makeMove(true);
+        makeMove(true,false);
         checkGameEnd();
     }
     
