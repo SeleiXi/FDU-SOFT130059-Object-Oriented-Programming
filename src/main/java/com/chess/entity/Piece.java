@@ -4,7 +4,8 @@ public enum Piece {
     BLACK("○"),
     WHITE("●"),
     EMPTY("."),
-    BLOCK("#");
+    BLOCK("#"),
+    CRATER("@");
 
     private final String symbol;
 

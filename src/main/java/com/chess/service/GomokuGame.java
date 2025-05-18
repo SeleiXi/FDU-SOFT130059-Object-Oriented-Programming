@@ -7,6 +7,8 @@ import com.chess.entity.GomokuBoard;
 public class GomokuGame extends Game {
     
     private int currentRound = 1;
+    private int blackBombs = 2;
+    private int whiteBombs = 3;
     
     public GomokuGame(String player1Name, String player2Name, int gameId) {
         super(player1Name, player2Name, GameMode.GOMOKU, gameId);
@@ -47,7 +49,7 @@ public class GomokuGame extends Game {
         }
         
         else {
-            makeMove(false);
+            makeMove(false,true);
             // switchPlayer();
             checkGameEnd();
             
@@ -124,23 +126,61 @@ public class GomokuGame extends Game {
     protected boolean processMoveInput(String input) {
         try {
             input = input.toUpperCase();
+            // 炸弹道具输入：@XY
+            if (input.startsWith("@")) {
+                if ((currentPlayer == player1 && blackBombs == 0) || (currentPlayer == player2 && whiteBombs == 0)) {
+                    System.out.println("你没有剩余炸弹了！");
+                    return false;
+                }
+                if (input.length() < 3) {
+                    System.out.println("炸弹输入格式有误，请使用@+纵坐标+横坐标（如：@FA）");
+                    return false;
+                }
+                String rowStr = input.substring(1, input.length() - 1);
+                String colStr = input.substring(input.length() - 1);
+                int row = GomokuBoard.parseRowLabel(rowStr);
+                int col = GomokuBoard.parseColLabel(colStr);
+                if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+                    System.out.println("输入超出棋盘范围，请重新输入！");
+                    return false;
+                }
+                Piece target = boards[currentBoardIndex].getPiece(row, col);
+                // 只能炸掉对方棋子，不能炸空、障碍物、弹坑、自己棋子
+                if (target == Piece.EMPTY || target == Piece.BLOCK || target == Piece.CRATER || target == currentPlayer.getPieceType()) {
+                    System.out.println("只能炸掉对方的棋子！");
+                    return false;
+                }
+                // 执行炸弹效果
+                boards[currentBoardIndex].placePiece(row, col, Piece.CRATER, true);
+                if (currentPlayer == player1) {
+                    blackBombs--;
+                } else {
+                    whiteBombs--;
+                }
+                System.out.println("炸弹已使用，位置(" + rowStr + colStr + ")已变为弹坑！");
+                return true;
+            }
+            // 普通落子
             if (input.length() < 2) {
                 System.out.println("输入格式有误，请使用纵坐标+横坐标（如：1A / FA）");
                 return false;
             }
             String rowStr = input.substring(0, input.length() - 1);
             String colStr = input.substring(input.length() - 1);
-
             int row = GomokuBoard.parseRowLabel(rowStr);
             int col = GomokuBoard.parseColLabel(colStr);
-
             if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
                 System.out.println("输入超出棋盘范围，请重新输入！");
                 return false;
             }
-            // 检查障碍物
-            if (boards[currentBoardIndex].getPiece(row, col) == Piece.BLOCK) {
+            // 检查障碍物和弹坑
+            Piece cell = boards[currentBoardIndex].getPiece(row, col);
+            if (cell == Piece.BLOCK) {
                 System.out.println("该位置为障碍物，无法落子！");
+                return false;
+            }
+            if (cell == Piece.CRATER) {
+                System.out.println("该位置为弹坑，无法落子！");
                 return false;
             }
             boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(), false);
@@ -153,7 +193,7 @@ public class GomokuGame extends Game {
             }
             return true;
         } catch (Exception e) {
-            System.out.println("输入格式有误，请使用纵坐标+横坐标（如：1A / FA）");
+            System.out.println("输入格式有误，请使用纵坐标+横坐标（如：1A / FA），或@+坐标使用炸弹");
             return false;
         }
     }
@@ -187,11 +227,13 @@ public class GomokuGame extends Game {
                         (currentPlayer == player1 ? player1.getPieceType().getSymbol()+ "   "  : "    ") +  
                         (0 < gameList.size() ? "1. " + gameList.get(0).gameMode.getName() + 
                         (0 == currentGameIndex ? " (当前)" : "") : ""));
+                System.out.print("  炸弹:" + blackBombs);
             } else if (i == 5) {
                 System.out.print("  玩家[" + player2.getName() + "] " +
                         (currentPlayer == player2 ? player2.getPieceType().getSymbol() + "   " : "    ") +
                         (1 < gameList.size() ? "2. " + gameList.get(1).gameMode.getName() + 
                         (1 == currentGameIndex ? " (当前)" : "") : ""));
+                System.out.print("  炸弹:" + whiteBombs);
             } else if (i == 6) {
                 // 在Player2下面显示当前回合数
                 System.out.print("  当前回合: " + currentRound + "       " + "3. " + gameList.get(2).gameMode.getName() + (2 == currentGameIndex ? " (当前)" : ""));
