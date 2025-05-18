@@ -206,7 +206,7 @@ public class GomokuGame extends Game {
             System.out.print(" " + GomokuBoard.getColLabel(j));
         }
         System.out.println();
-        
+        int infoColumn = 25; // 统一信息起始列
         for (int i = 0; i < Math.max(boardSize, 6 + gameList.size() - 2); i++) {
             // 显示棋盘行（如果在棋盘范围内）
             if (i < boardSize) {
@@ -218,35 +218,43 @@ public class GomokuGame extends Game {
                 // 如果超出棋盘范围，只需要为游戏列表留出空间
                 System.out.print("                 ");
             }
-
             // 右侧显示游戏信息和游戏列表
             if (i == 3) {
-                System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")    游戏列表");
+                // int len = ("游戏#" + gameId + " (" + gameMode.getName() + ")").length();
+                // for (int s = 0; s < infoColumn - len; s++) System.out.print(" ");
+                System.out.print("  游戏#" + gameId + " (" + gameMode.getName() + ")              游戏列表");
             } else if (i == 4) {
-                System.out.print("  玩家[" + player1.getName() + "] " +
-                        (currentPlayer == player1 ? player1.getPieceType().getSymbol()+ "   "  : "    ") +  
-                        (0 < gameList.size() ? "1. " + gameList.get(0).gameMode.getName() + 
-                        (0 == currentGameIndex ? " (当前)" : "") : ""));
-                System.out.print("  炸弹:" + blackBombs);
+                String player1Info = "  玩家[" + player1.getName() + "] "  + (currentPlayer == player1 ? player1.getPieceType().getSymbol() + "   "  : "    ") + "炸弹:" + blackBombs;
+                int len = player1Info.length();
+                System.out.print(player1Info);
+                for (int s = 0; s < infoColumn - len; s++) System.out.print(" ");
+                if (0 < gameList.size()) {
+                    System.out.print("1. " + gameList.get(0).gameMode.getName() + (0 == currentGameIndex ? " (当前)" : ""));
+                }
             } else if (i == 5) {
-                System.out.print("  玩家[" + player2.getName() + "] " +
-                        (currentPlayer == player2 ? player2.getPieceType().getSymbol() + "   " : "    ") +
-                        (1 < gameList.size() ? "2. " + gameList.get(1).gameMode.getName() + 
-                        (1 == currentGameIndex ? " (当前)" : "") : ""));
-                System.out.print("  炸弹:" + whiteBombs);
+                String player2Info = "  玩家[" + player2.getName() + "] " + (currentPlayer == player2 ? player2.getPieceType().getSymbol() + "   " : "    ") + "炸弹:" + whiteBombs;
+                int len = player2Info.length();
+                System.out.print(player2Info);
+                for (int s = 0; s < infoColumn - len; s++) System.out.print(" ");
+                if (1 < gameList.size()) {
+                    System.out.print("2. " + gameList.get(1).gameMode.getName() + (1 == currentGameIndex ? " (当前)" : ""));
+                }
             } else if (i == 6) {
-                // 在Player2下面显示当前回合数
-                System.out.print("  当前回合: " + currentRound + "       " + "3. " + gameList.get(2).gameMode.getName() + (2 == currentGameIndex ? " (当前)" : ""));
+                String roundInfo = "  当前回合: " + currentRound;
+                int len = roundInfo.length();
+                System.out.print(roundInfo);
+                for (int s = 0; s < infoColumn - len; s++) System.out.print(" ");
+                if (2 < gameList.size()) {
+                    System.out.print("3. " + gameList.get(2).gameMode.getName() + (2 == currentGameIndex ? " (当前)" : ""));
+                }
             } else if (i >= 7 && i < 7 + gameList.size() - 3) {
-                // 从第三个游戏开始，顺序显示剩余的游戏列表项
                 int gameIndex = i - 7 + 3; // 从第4个游戏(索引3)开始
+                StringBuilder spaces = new StringBuilder();
+                for (int s = 0; s < infoColumn+4; s++) spaces.append(" "); 
                 if (gameIndex < gameList.size()) {
-                    System.out.print("                    " + (gameIndex + 1) + ". " + 
-                            gameList.get(gameIndex).gameMode.getName() + 
-                            (gameIndex == currentGameIndex ? " (当前)" : ""));
+                    System.out.print(spaces.toString() + (gameIndex + 1) + ". " + gameList.get(gameIndex).gameMode.getName() + (gameIndex == currentGameIndex ? " (当前)" : ""));
                 }
             }
-
             System.out.println();
         }
         System.out.println();
