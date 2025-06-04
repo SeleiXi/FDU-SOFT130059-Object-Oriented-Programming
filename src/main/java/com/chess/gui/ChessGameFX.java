@@ -32,6 +32,7 @@ public class ChessGameFX extends Application {
     private Button passButton;
     private Button bombButton;
     private Button demoButton;
+    private TextArea logArea;
     
     private List<Game> games;
     private int currentGameIndex = 0;
@@ -49,13 +50,14 @@ public class ChessGameFX extends Application {
         initializeComponents();
         setupLayout();
         updateDisplay();
+        logMessage("应用程序启动成功");
         
         Scene scene = new Scene(root, 1200, 800);
         primaryStage.setTitle("Chess Games - JavaFX版");
         primaryStage.setScene(scene);
         
         // 设置窗口最小尺寸，确保所有元素都能显示
-        primaryStage.setMinWidth(1100);
+        primaryStage.setMinWidth(1400);
         primaryStage.setMinHeight(800);
         
         primaryStage.show();
@@ -76,6 +78,13 @@ public class ChessGameFX extends Application {
         gameInfoLabel = new Label("游戏信息");
         playerInfoLabel = new Label("玩家信息");
         statusLabel = new Label("状态: 就绪");
+        logArea = new TextArea();
+        
+        // 设置日志区域属性
+        logArea.setEditable(false);
+        logArea.setWrapText(true);
+        logArea.setPrefHeight(200);
+        logArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
         
         passButton = new Button("Pass");
         bombButton = new Button("炸弹模式");
@@ -90,19 +99,25 @@ public class ChessGameFX extends Application {
             if (newVal != null && newVal.intValue() >= 0 && newVal.intValue() < games.size()) {
                 currentGameIndex = newVal.intValue();
                 currentGame = games.get(currentGameIndex);
+                logMessage("切换到游戏 #" + currentGame.getGameId() + " (" + currentGame.getGameMode().getName() + ")");
                 updateDisplay();
             }
         });
     }
     
     private void setupLayout() {
-        // 左侧棋盘区域
+        // 左侧棋盘区域 - 固定大小
         VBox leftPanel = new VBox();
         leftPanel.setPadding(new Insets(20));
         leftPanel.setSpacing(10);
+        leftPanel.setMinWidth(800);  // 增加宽度以容纳15x15棋盘
+        leftPanel.setMaxWidth(800);  // 设置固定最大宽度
+        leftPanel.setPrefWidth(800); // 设置固定首选宽度
         
         Label chessTitle = new Label("棋盘");
         chessTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
+        chessTitle.setAlignment(Pos.CENTER);
+        chessTitle.setMaxWidth(Double.MAX_VALUE);
         
         chessBoard.setAlignment(Pos.CENTER);
         chessBoard.setHgap(2);
@@ -110,52 +125,81 @@ public class ChessGameFX extends Application {
         chessBoard.setPadding(new Insets(20));
         chessBoard.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #888888; -fx-border-width: 2px;");
         
-        // 棋盘容器，居中显示
+        // 棋盘容器，居中显示，固定大小
         VBox chessBoardContainer = new VBox();
         chessBoardContainer.setAlignment(Pos.CENTER);
         chessBoardContainer.getChildren().add(chessBoard);
-        VBox.setVgrow(chessBoardContainer, Priority.ALWAYS);
+        chessBoardContainer.setMinHeight(700);  // 增加高度以容纳15x15棋盘
+        chessBoardContainer.setMaxHeight(700);  // 设置固定高度
+        chessBoardContainer.setPrefHeight(700); // 设置固定高度
         
         leftPanel.getChildren().addAll(chessTitle, chessBoardContainer);
         
-        // 右侧信息区域 - 使用VBox而不是HBox，在窄屏幕时更好适应
-        VBox rightPanel = new VBox();
+        // 右侧信息区域 - 自适应布局，占据剩余空间
+        BorderPane rightPanel = new BorderPane();
         rightPanel.setPadding(new Insets(20));
-        rightPanel.setSpacing(20);
-        rightPanel.setMinWidth(250);
-        rightPanel.setPrefWidth(300);
+        // 移除固定宽度设置，让它自适应
+        
+        // 顶部三列区域：游戏信息、游戏列表、操作
+        HBox topSection = new HBox();
+        topSection.setSpacing(15);
+        topSection.setPadding(new Insets(0, 0, 15, 0));
+        
+        // 第一列：游戏信息 - 自适应宽度
+        VBox gameInfoColumn = new VBox();
+        gameInfoColumn.setSpacing(10);
+        // 移除固定宽度，使用比例分配
         
         // 游戏信息面板
         VBox gameInfoPanel = new VBox();
         gameInfoPanel.setSpacing(10);
         Label gameInfoTitle = new Label("游戏信息");
         gameInfoTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+        gameInfoTitle.setAlignment(Pos.CENTER);
+        gameInfoTitle.setMaxWidth(Double.MAX_VALUE);
         
         // 使用ScrollPane包装信息标签，防止文本过长
         VBox infoContent = new VBox(5);
         infoContent.getChildren().addAll(gameInfoLabel, playerInfoLabel, statusLabel);
         ScrollPane infoScroll = new ScrollPane(infoContent);
         infoScroll.setFitToWidth(true);
-        infoScroll.setPrefHeight(120);
+        infoScroll.setPrefHeight(300);
         infoScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         infoScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         
         gameInfoPanel.getChildren().addAll(gameInfoTitle, infoScroll);
+        gameInfoColumn.getChildren().add(gameInfoPanel);
+        
+        // 第二列：游戏列表 - 自适应宽度
+        VBox gameListColumn = new VBox();
+        gameListColumn.setSpacing(10);
+        // 移除固定宽度，使用比例分配
         
         // 游戏列表面板
         VBox gameListPanel = new VBox();
         gameListPanel.setSpacing(10);
         Label gameListTitle = new Label("游戏列表");
         gameListTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
-        gameListView.setPrefHeight(150);
+        gameListTitle.setAlignment(Pos.CENTER);
+        gameListTitle.setMaxWidth(Double.MAX_VALUE);
+        gameListView.setPrefHeight(300);
         gameListPanel.getChildren().addAll(gameListTitle, gameListView);
         VBox.setVgrow(gameListView, Priority.ALWAYS);
+        
+        gameListColumn.getChildren().add(gameListPanel);
+        
+        // 第三列：控制按钮 - 自适应宽度
+        VBox controlColumn = new VBox();
+        controlColumn.setSpacing(10);
+        // 移除固定宽度，使用比例分配
         
         // 控制面板
         VBox controlPanel = new VBox();
         controlPanel.setSpacing(10);
         Label controlTitle = new Label("操作");
         controlTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+        controlTitle.setAlignment(Pos.CENTER);
+        controlTitle.setMaxWidth(Double.MAX_VALUE);
         
         // 操作按钮容器
         VBox buttonContainer = new VBox(5);
@@ -188,28 +232,53 @@ public class ChessGameFX extends Application {
         // 将按钮容器放入ScrollPane
         ScrollPane buttonScroll = new ScrollPane(buttonContainer);
         buttonScroll.setFitToWidth(true);
-        buttonScroll.setPrefHeight(200);
+        buttonScroll.setPrefHeight(300);
         buttonScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         buttonScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         
         controlPanel.getChildren().addAll(controlTitle, buttonScroll);
         
-        // 设置右侧面板的增长策略
-        VBox.setVgrow(gameListPanel, Priority.SOMETIMES);
-        VBox.setVgrow(controlPanel, Priority.SOMETIMES);
+        controlColumn.getChildren().add(controlPanel);
         
-        rightPanel.getChildren().addAll(gameInfoPanel, gameListPanel, controlPanel);
+        // 设置三列的增长策略 - 均匀分配可用空间
+        HBox.setHgrow(gameInfoColumn, Priority.ALWAYS);
+        HBox.setHgrow(gameListColumn, Priority.ALWAYS);
+        HBox.setHgrow(controlColumn, Priority.ALWAYS);
         
-        // 主布局 - 左右分布
-        BorderPane.setMargin(leftPanel, new Insets(0, 10, 0, 0));
-        BorderPane.setMargin(rightPanel, new Insets(0, 0, 0, 10));
+        topSection.getChildren().addAll(gameInfoColumn, gameListColumn, controlColumn);
         
-        root.setCenter(leftPanel);
-        root.setRight(rightPanel);
+        rightPanel.setTop(topSection);
         
-        // 设置主容器的增长策略
-        HBox.setHgrow(leftPanel, Priority.ALWAYS);
-        HBox.setHgrow(rightPanel, Priority.NEVER);
+        // 日志信息面板 - 自适应宽度
+        VBox logPanel = new VBox();
+        logPanel.setSpacing(10);
+        Label logTitle = new Label("日志信息");
+        logTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+        logTitle.setAlignment(Pos.CENTER);
+        logTitle.setMaxWidth(Double.MAX_VALUE);
+        
+        ScrollPane logScroll = new ScrollPane(logArea);
+        logScroll.setFitToWidth(true);
+        logScroll.setPrefHeight(200);
+        logScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        logScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        
+        logPanel.getChildren().addAll(logTitle, logScroll);
+        
+        rightPanel.setCenter(logPanel);
+        
+        // 主布局 - 使用HBox实现固定左侧+自适应右侧
+        HBox mainLayout = new HBox();
+        mainLayout.setSpacing(10);
+        
+        // 设置左侧棋盘为固定大小，右侧信息区域为自适应
+        HBox.setHgrow(leftPanel, Priority.NEVER);   // 左侧不增长，保持固定大小
+        HBox.setHgrow(rightPanel, Priority.ALWAYS); // 右侧自适应增长，占据剩余空间
+        
+        mainLayout.getChildren().addAll(leftPanel, rightPanel);
+        
+        // 将主布局放入BorderPane的中心
+        root.setCenter(mainLayout);
     }
     
     private void updateDisplay() {
@@ -301,6 +370,7 @@ public class ChessGameFX extends Application {
     
     private void handleCellClick(int row, int col) {
         if (currentGame.isGameEnded()) {
+            logMessage("当前游戏已结束，无法继续下棋");
             showAlert("游戏已结束", "当前游戏已结束，请切换到其他游戏", Alert.AlertType.INFORMATION);
             return;
         }
@@ -318,28 +388,41 @@ public class ChessGameFX extends Application {
             GomokuBoard.getRowLabel(row) + GomokuBoard.getColLabel(col) :
             (row + 1) + "" + (char)('A' + col);
         
+        String playerName = currentGame.getCurrentPlayer().getName();
+        logMessage("玩家 " + playerName + " 尝试在 " + input + " 位置落子");
+        
         boolean success = currentGame.processMoveInput(input);
         if (success) {
+            logMessage("玩家 " + playerName + " 在 " + input + " 位置落子成功");
             currentGame.switchPlayer();
             currentGame.checkGameEnd();
             updateDisplay();
             
             if (currentGame.isGameEnded()) {
+                logMessage("游戏结束！");
                 showGameResult();
             }
+        } else {
+            logMessage("玩家 " + playerName + " 在 " + input + " 位置落子失败");
         }
     }
     
     private void handleBombClick(int row, int col) {
         GomokuGame gomoku = (GomokuGame) currentGame;
         String input = "@" + GomokuBoard.getRowLabel(row) + GomokuBoard.getColLabel(col);
+        String playerName = currentGame.getCurrentPlayer().getName();
+        
+        logMessage("玩家 " + playerName + " 使用炸弹在 " + input.substring(1) + " 位置");
         
         boolean success = gomoku.processMoveInput(input);
         if (success) {
+            logMessage("炸弹使用成功，切换到下一位玩家");
             bombMode = false;
             bombButton.setText("炸弹模式");
             gomoku.switchPlayer();
             updateDisplay();
+        } else {
+            logMessage("炸弹使用失败 - 可能是无效位置或炸弹不足");
         }
     }
     
@@ -407,10 +490,14 @@ public class ChessGameFX extends Application {
     private void handlePass() {
         if (currentGame instanceof ReversiGame) {
             ReversiGame reversi = (ReversiGame) currentGame;
+            String playerName = currentGame.getCurrentPlayer().getName();
+            
             if (!reversi.hasValidMove(currentGame.getCurrentPlayer())) {
+                logMessage("玩家 " + playerName + " Pass - 无合法落子位置");
                 currentGame.switchPlayer();
                 updateDisplay();
             } else {
+                logMessage("玩家 " + playerName + " 尝试Pass失败 - 还有合法落子位置");
                 showAlert("无法Pass", "当前有合法落子位置，不能Pass", Alert.AlertType.WARNING);
             }
         }
@@ -421,11 +508,19 @@ public class ChessGameFX extends Application {
             bombMode = !bombMode;
             bombButton.setText(bombMode ? "取消炸弹" : "炸弹模式");
             statusLabel.setText(bombMode ? "状态: 炸弹模式 - 请选择要炸掉的位置" : "状态: 就绪");
+            
+            String playerName = currentGame.getCurrentPlayer().getName();
+            if (bombMode) {
+                logMessage("玩家 " + playerName + " 进入炸弹模式");
+            } else {
+                logMessage("玩家 " + playerName + " 退出炸弹模式");
+            }
         }
     }
     
     private void handleDemo() {
         if (currentGame instanceof GomokuGame) {
+            logMessage("演示模式功能暂未实现");
             showAlert("演示模式", "演示模式功能待实现", Alert.AlertType.INFORMATION);
         }
     }
@@ -437,14 +532,18 @@ public class ChessGameFX extends Application {
         switch (gameType.toLowerCase()) {
             case "peace":
                 newGame = new Game("Player1", "Player2", Game.GameMode.PEACE, newId);
+                logMessage("创建新的Peace游戏 #" + newId);
                 break;
             case "reversi":
                 newGame = new ReversiGame("Player1", "Player2", newId);
+                logMessage("创建新的Reversi游戏 #" + newId);
                 break;
             case "gomoku":
                 newGame = new GomokuGame("Player1", "Player2", newId);
+                logMessage("创建新的Gomoku游戏 #" + newId);
                 break;
             default:
+                logMessage("未知游戏类型: " + gameType);
                 return;
         }
         
@@ -454,6 +553,8 @@ public class ChessGameFX extends Application {
     
     private void showGameResult() {
         StringBuilder result = new StringBuilder("游戏结束！\n");
+        StringBuilder logResult = new StringBuilder("游戏结束 - ");
+        
         if (currentGame instanceof ReversiGame) {
             ReversiGame reversi = (ReversiGame) currentGame;
             int blackCount = reversi.countPieces(Piece.BLACK);
@@ -463,15 +564,23 @@ public class ChessGameFX extends Application {
             
             if (blackCount > whiteCount) {
                 result.append("玩家[").append(currentGame.getPlayer1().getName()).append("]获胜！");
+                logResult.append("玩家[").append(currentGame.getPlayer1().getName()).append("]获胜 (").append(blackCount).append(" vs ").append(whiteCount).append(")");
             } else if (whiteCount > blackCount) {
                 result.append("玩家[").append(currentGame.getPlayer2().getName()).append("]获胜！");
+                logResult.append("玩家[").append(currentGame.getPlayer2().getName()).append("]获胜 (").append(whiteCount).append(" vs ").append(blackCount).append(")");
             } else {
                 result.append("游戏平局！");
+                logResult.append("平局 (").append(blackCount).append(" vs ").append(whiteCount).append(")");
             }
+        } else if (currentGame instanceof GomokuGame) {
+            result.append("游戏结束");
+            logResult.append("Gomoku游戏结束");
         } else {
             result.append("游戏结束");
+            logResult.append("Peace游戏结束");
         }
         
+        logMessage(logResult.toString());
         showAlert("游戏结果", result.toString(), Alert.AlertType.INFORMATION);
     }
     
@@ -481,5 +590,15 @@ public class ChessGameFX extends Application {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    
+    // 添加日志记录方法
+    private void logMessage(String message) {
+        String timestamp = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+        String logEntry = "[" + timestamp + "] " + message + "\n";
+        logArea.appendText(logEntry);
+        
+        // 自动滚动到底部
+        logArea.setScrollTop(Double.MAX_VALUE);
     }
 } 
