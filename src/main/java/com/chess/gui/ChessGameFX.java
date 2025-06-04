@@ -8,17 +8,16 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.FileChooser;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+
 import com.chess.service.Game;
 import com.chess.service.ReversiGame;
 import com.chess.service.GomokuGame;
 import com.chess.entity.Piece;
-import com.chess.entity.Board;
 import com.chess.entity.GomokuBoard;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,144 +32,133 @@ public class ChessGameFX extends Application {
     private Button passButton;
     private Button bombButton;
     private Button demoButton;
-    private Button quitButton;
-    private VBox newGameButtons;
     
-    private List<Game> gameList;
+    private List<Game> games;
     private int currentGameIndex = 0;
     private boolean bombMode = false;
     private Game currentGame;
-    private PlaybackDemo playbackDemo;
-    private boolean isDemoMode = false;
+    private Button[][] chessCells;
     
-    private static final String SAVE_FILE = "pj.game";
+    public static void main(String[] args) {
+        launch(args);
+    }
     
     @Override
     public void start(Stage primaryStage) {
+        initializeGames();
         initializeComponents();
-        loadGameState();
         setupLayout();
         updateDisplay();
         
         Scene scene = new Scene(root, 1200, 800);
-        // 移除CSS加载，避免文件不存在的错误
-        // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
-        
         primaryStage.setTitle("Chess Games - JavaFX版");
         primaryStage.setScene(scene);
-        primaryStage.setOnCloseRequest(e -> saveGameState());
         primaryStage.show();
+    }
+    
+    private void initializeGames() {
+        games = new ArrayList<>();
+        games.add(new Game("Player1", "Player2", Game.GameMode.PEACE, 1));
+        games.add(new ReversiGame("Player1", "Player2", 2));
+        games.add(new GomokuGame("Player1", "Player2", 3));
+        currentGame = games.get(currentGameIndex);
     }
     
     private void initializeComponents() {
         root = new BorderPane();
         chessBoard = new GridPane();
         gameListView = new ListView<>();
-        gameInfoLabel = new Label();
-        playerInfoLabel = new Label();
-        statusLabel = new Label();
+        gameInfoLabel = new Label("游戏信息");
+        playerInfoLabel = new Label("玩家信息");
+        statusLabel = new Label("状态: 就绪");
         
-        // 按钮
         passButton = new Button("Pass");
         bombButton = new Button("炸弹模式");
         demoButton = new Button("演示模式");
-        quitButton = new Button("退出游戏");
-        
-        // 新游戏按钮
-        newGameButtons = new VBox(5);
-        Button peaceButton = new Button("新建Peace");
-        Button reversiButton = new Button("新建Reversi");
-        Button gomokuButton = new Button("新建Gomoku");
-        
-        newGameButtons.getChildren().addAll(peaceButton, reversiButton, gomokuButton);
         
         // 设置按钮事件
-        setupButtonEvents(peaceButton, reversiButton, gomokuButton);
-        
-        // 初始化游戏列表
-        if (gameList == null) {
-            gameList = new ArrayList<>();
-            gameList.add(new Game("Player1", "Player2", Game.GameMode.PEACE, 1));
-            gameList.add(new ReversiGame("Player1", "Player2", 2));
-            gameList.add(new GomokuGame("Player1", "Player2", 3));
-        }
-        currentGame = gameList.get(currentGameIndex);
-    }
-    
-    private void setupButtonEvents(Button peaceButton, Button reversiButton, Button gomokuButton) {
-        peaceButton.setOnAction(e -> addNewGame("peace"));
-        reversiButton.setOnAction(e -> addNewGame("reversi"));
-        gomokuButton.setOnAction(e -> addNewGame("gomoku"));
-        
         passButton.setOnAction(e -> handlePass());
         bombButton.setOnAction(e -> toggleBombMode());
         demoButton.setOnAction(e -> handleDemo());
-        quitButton.setOnAction(e -> handleQuit());
         
-        gameListView.setOnMouseClicked(e -> {
-            int selected = gameListView.getSelectionModel().getSelectedIndex();
-            if (selected >= 0 && selected < gameList.size()) {
-                currentGameIndex = selected;
-                currentGame = gameList.get(currentGameIndex);
+        gameListView.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && newVal.intValue() >= 0 && newVal.intValue() < games.size()) {
+                currentGameIndex = newVal.intValue();
+                currentGame = games.get(currentGameIndex);
                 updateDisplay();
             }
         });
     }
     
     private void setupLayout() {
-        // 左侧棋盘 - 固定大小
+        // 左侧棋盘区域
+        VBox leftPanel = new VBox(10);
+        leftPanel.setPadding(new Insets(20));
+        
+        Label chessTitle = new Label("棋盘");
+        chessTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
+        
         chessBoard.setAlignment(Pos.CENTER);
         chessBoard.setHgap(2);
         chessBoard.setVgap(2);
         chessBoard.setPadding(new Insets(20));
-        chessBoard.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+        chessBoard.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #888888; -fx-border-width: 2px;");
         
-        // 右侧3列信息区域
-        VBox rightPanel = new VBox(10);
+        leftPanel.getChildren().addAll(chessTitle, chessBoard);
+        
+        // 右侧信息区域
+        HBox rightPanel = new HBox(20);
         rightPanel.setPadding(new Insets(20));
         
-        // 第一列：游戏信息
+        // 游戏信息面板
         VBox gameInfoPanel = new VBox(10);
+        gameInfoPanel.setPrefWidth(200);
+        Label gameInfoTitle = new Label("游戏信息");
+        gameInfoTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
         gameInfoPanel.getChildren().addAll(
-            new Label("游戏信息"),
+            gameInfoTitle,
             gameInfoLabel,
             playerInfoLabel,
             statusLabel
         );
         
-        // 第二列：游戏列表 (ListView)
+        // 游戏列表面板
         VBox gameListPanel = new VBox(10);
-        gameListPanel.getChildren().addAll(
-            new Label("游戏列表"),
-            gameListView
-        );
+        gameListPanel.setPrefWidth(200);
+        Label gameListTitle = new Label("游戏列表");
+        gameListTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
         gameListView.setPrefHeight(200);
+        gameListPanel.getChildren().addAll(gameListTitle, gameListView);
         
-        // 第三列：操作按钮
+        // 控制面板
         VBox controlPanel = new VBox(10);
+        controlPanel.setPrefWidth(200);
+        Label controlTitle = new Label("操作");
+        controlTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+        
         controlPanel.getChildren().addAll(
-            new Label("操作"),
+            controlTitle,
             passButton,
             bombButton,
             demoButton,
-            new Separator(),
-            new Label("新建游戏"),
-            newGameButtons,
-            new Separator(),
-            quitButton
+            new Separator()
         );
         
-        // 使用HBox让右侧3列均匀分布
-        HBox rightColumns = new HBox(20);
-        rightColumns.getChildren().addAll(gameInfoPanel, gameListPanel, controlPanel);
+        // 新建游戏按钮
+        Button newPeaceButton = new Button("新建Peace");
+        Button newReversiButton = new Button("新建Reversi");
+        Button newGomokuButton = new Button("新建Gomoku");
         
-        // 设置列宽度比例
-        HBox.setHgrow(gameInfoPanel, Priority.ALWAYS);
-        HBox.setHgrow(gameListPanel, Priority.ALWAYS);
-        HBox.setHgrow(controlPanel, Priority.ALWAYS);
+        newPeaceButton.setOnAction(e -> addNewGame("peace"));
+        newReversiButton.setOnAction(e -> addNewGame("reversi"));
+        newGomokuButton.setOnAction(e -> addNewGame("gomoku"));
         
-        root.setLeft(chessBoard);
-        root.setRight(rightColumns);
+        controlPanel.getChildren().addAll(newPeaceButton, newReversiButton, newGomokuButton);
+        
+        rightPanel.getChildren().addAll(gameInfoPanel, gameListPanel, controlPanel);
+        
+        root.setLeft(leftPanel);
+        root.setRight(rightPanel);
     }
     
     private void updateDisplay() {
@@ -188,72 +176,82 @@ public class ChessGameFX extends Application {
         int size = currentGame.getBoards()[currentGame.getCurrentBoardIndex()].getSize();
         boolean isGomoku = currentGame instanceof GomokuGame;
         
+        chessCells = new Button[size][size];
+        
         // 添加列标签
         for (int j = 0; j < size; j++) {
-            Label colLabel = new Label(isGomoku ? 
-                GomokuBoard.getColLabel(j) : String.valueOf((char)('A' + j)));
-            colLabel.setAlignment(Pos.CENTER);
-            colLabel.setPrefSize(40, 30);
-            chessBoard.add(colLabel, j + 1, 0);
+            String colLabel = isGomoku ? 
+                GomokuBoard.getColLabel(j) : String.valueOf((char)('A' + j));
+            Label label = new Label(colLabel);
+            label.setAlignment(Pos.CENTER);
+            label.setPrefSize(40, 30);
+            label.setFont(Font.font("Monospaced", FontWeight.BOLD, 12));
+            chessBoard.add(label, j + 1, 0);
         }
         
         // 添加行标签和棋盘格子
         for (int i = 0; i < size; i++) {
             // 行标签
-            Label rowLabel = new Label(isGomoku ? 
-                GomokuBoard.getRowLabel(i) : String.valueOf(i + 1));
-            rowLabel.setAlignment(Pos.CENTER);
-            rowLabel.setPrefSize(30, 40);
-            chessBoard.add(rowLabel, 0, i + 1);
+            String rowLabel = isGomoku ? 
+                GomokuBoard.getRowLabel(i) : String.valueOf(i + 1);
+            Label label = new Label(rowLabel);
+            label.setAlignment(Pos.CENTER);
+            label.setPrefSize(30, 40);
+            label.setFont(Font.font("Monospaced", FontWeight.BOLD, 12));
+            chessBoard.add(label, 0, i + 1);
             
             // 棋盘格子
             for (int j = 0; j < size; j++) {
-                Pane cell = createChessBoardCell(i, j);
+                Button cell = createChessCell(i, j);
+                chessCells[i][j] = cell;
                 chessBoard.add(cell, j + 1, i + 1);
             }
         }
     }
     
-    private Pane createChessBoardCell(int row, int col) {
-        StackPane cell = new StackPane();
+    private Button createChessCell(int row, int col) {
+        Button cell = new Button();
         cell.setPrefSize(40, 40);
-        cell.setStyle("-fx-border-color: black; -fx-background-color: lightblue;");
+        cell.setStyle("-fx-background-color: #e6f3ff; -fx-border-color: #333333; -fx-border-width: 1px;");
         
         Piece piece = currentGame.getBoards()[currentGame.getCurrentBoardIndex()].getPiece(row, col);
         
-        // 添加棋子或特殊标记
+        // 设置棋子显示
         if (piece == Piece.BLACK) {
             Circle circle = new Circle(15, Color.BLACK);
-            cell.getChildren().add(circle);
+            cell.setGraphic(circle);
+            cell.setText("");
         } else if (piece == Piece.WHITE) {
             Circle circle = new Circle(15, Color.WHITE);
             circle.setStroke(Color.BLACK);
-            cell.getChildren().add(circle);
+            cell.setGraphic(circle);
+            cell.setText("");
         } else if (piece == Piece.BLOCK) {
-            Rectangle block = new Rectangle(30, 30, Color.BROWN);
-            cell.getChildren().add(block);
+            cell.setText("■");
+            cell.setStyle("-fx-background-color: #888888; -fx-text-fill: #444444;");
         } else if (piece == Piece.CRATER) {
-            Label crater = new Label("@");
-            crater.setStyle("-fx-font-size: 20px; -fx-text-fill: red;");
-            cell.getChildren().add(crater);
+            cell.setText("@");
+            cell.setStyle("-fx-background-color: #ffcccc; -fx-text-fill: red;");
         } else if (currentGame instanceof ReversiGame && 
                    ((ReversiGame)currentGame).isValidMove(row, col, currentGame.getCurrentPlayer().getPieceType())) {
-            Label hint = new Label("+");
-            hint.setStyle("-fx-font-size: 20px; -fx-text-fill: green;");
-            cell.getChildren().add(hint);
+            cell.setText("+");
+            cell.setStyle("-fx-background-color: #ccffcc; -fx-text-fill: green;");
+        } else {
+            cell.setText("");
+            cell.setGraphic(null);
         }
         
         // 设置点击事件
         final int finalRow = row;
         final int finalCol = col;
-        cell.setOnMouseClicked(e -> handleCellClick(finalRow, finalCol));
+        cell.setOnAction(e -> handleCellClick(finalRow, finalCol));
         
         return cell;
     }
     
     private void handleCellClick(int row, int col) {
         if (currentGame.isGameEnded()) {
-            showAlert("游戏已结束", "当前游戏已结束，请切换到其他游戏");
+            showAlert("游戏已结束", "当前游戏已结束，请切换到其他游戏", Alert.AlertType.INFORMATION);
             return;
         }
         
@@ -306,12 +304,11 @@ public class ChessGameFX extends Application {
             GomokuGame gomoku = (GomokuGame) currentGame;
             info.append("当前回合: ").append(gomoku.getCurrentRound()).append("\n");
         }
-        
         gameInfoLabel.setText(info.toString());
         
         // 玩家信息
         StringBuilder playerInfo = new StringBuilder();
-        String currentSymbol = currentGame.getCurrentPlayer() == currentGame.getPlayer1() ? "○" : "●";
+        String currentSymbol = currentGame.getCurrentPlayer() == currentGame.getPlayer1() ? "●" : "○";
         
         if (currentGame instanceof ReversiGame) {
             ReversiGame reversi = (ReversiGame) currentGame;
@@ -335,14 +332,13 @@ public class ChessGameFX extends Application {
             playerInfo.append("玩家[").append(currentGame.getPlayer2().getName()).append("] ")
                      .append(currentGame.getCurrentPlayer() == currentGame.getPlayer2() ? currentSymbol : "");
         }
-        
         playerInfoLabel.setText(playerInfo.toString());
     }
     
     private void updateGameList() {
         gameListView.getItems().clear();
-        for (int i = 0; i < gameList.size(); i++) {
-            Game game = gameList.get(i);
+        for (int i = 0; i < games.size(); i++) {
+            Game game = games.get(i);
             String item = (i + 1) + ". " + game.getGameMode().getName();
             if (i == currentGameIndex) {
                 item += " (当前)";
@@ -365,7 +361,7 @@ public class ChessGameFX extends Application {
                 currentGame.switchPlayer();
                 updateDisplay();
             } else {
-                showAlert("无法Pass", "当前有合法落子位置，不能Pass");
+                showAlert("无法Pass", "当前有合法落子位置，不能Pass", Alert.AlertType.WARNING);
             }
         }
     }
@@ -374,47 +370,19 @@ public class ChessGameFX extends Application {
         if (currentGame instanceof GomokuGame) {
             bombMode = !bombMode;
             bombButton.setText(bombMode ? "取消炸弹" : "炸弹模式");
-            statusLabel.setText(bombMode ? "请选择要炸掉的位置" : "");
+            statusLabel.setText(bombMode ? "状态: 炸弹模式 - 请选择要炸掉的位置" : "状态: 就绪");
         }
     }
     
     private void handleDemo() {
         if (currentGame instanceof GomokuGame) {
-            if (playbackDemo != null && playbackDemo.isRunning()) {
-                playbackDemo.stopDemo();
-                isDemoMode = false;
-                demoButton.setText("演示模式");
-                statusLabel.setText("");
-                updateDisplay();
-            } else {
-                playbackDemo = new PlaybackDemo(currentGame, this::updateDemoDisplay);
-                isDemoMode = true;
-                demoButton.setText("停止演示");
-                statusLabel.setText("演示模式运行中...");
-                playbackDemo.startDemo();
-            }
+            showAlert("演示模式", "演示模式功能待实现", Alert.AlertType.INFORMATION);
         }
-    }
-    
-    private void updateDemoDisplay() {
-        if (isDemoMode && playbackDemo != null) {
-            // 临时切换显示演示游戏的状态
-            Game originalGame = currentGame;
-            currentGame = playbackDemo.getDemoGame();
-            updateChessBoard();
-            updateGameInfo();
-            currentGame = originalGame; // 恢复原游戏
-        }
-    }
-    
-    private void handleQuit() {
-        saveGameState();
-        System.exit(0);
     }
     
     private void addNewGame(String gameType) {
         Game newGame;
-        int newId = gameList.size() + 1;
+        int newId = games.size() + 1;
         
         switch (gameType.toLowerCase()) {
             case "peace":
@@ -430,64 +398,38 @@ public class ChessGameFX extends Application {
                 return;
         }
         
-        gameList.add(newGame);
+        games.add(newGame);
         updateGameList();
     }
     
     private void showGameResult() {
-        String result = "游戏结束！\n";
+        StringBuilder result = new StringBuilder("游戏结束！\n");
         if (currentGame instanceof ReversiGame) {
             ReversiGame reversi = (ReversiGame) currentGame;
             int blackCount = reversi.countPieces(Piece.BLACK);
             int whiteCount = reversi.countPieces(Piece.WHITE);
-            result += "玩家[" + currentGame.getPlayer1().getName() + "] 得分: " + blackCount + "\n";
-            result += "玩家[" + currentGame.getPlayer2().getName() + "] 得分: " + whiteCount + "\n";
+            result.append("玩家[").append(currentGame.getPlayer1().getName()).append("] 得分: ").append(blackCount).append("\n");
+            result.append("玩家[").append(currentGame.getPlayer2().getName()).append("] 得分: ").append(whiteCount).append("\n");
             
             if (blackCount > whiteCount) {
-                result += "玩家[" + currentGame.getPlayer1().getName() + "]获胜！";
+                result.append("玩家[").append(currentGame.getPlayer1().getName()).append("]获胜！");
             } else if (whiteCount > blackCount) {
-                result += "玩家[" + currentGame.getPlayer2().getName() + "]获胜！";
+                result.append("玩家[").append(currentGame.getPlayer2().getName()).append("]获胜！");
             } else {
-                result += "游戏平局！";
+                result.append("游戏平局！");
             }
         } else {
-            result += "游戏结束";
+            result.append("游戏结束");
         }
         
-        showAlert("游戏结果", result);
+        showAlert("游戏结果", result.toString(), Alert.AlertType.INFORMATION);
     }
     
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    private void showAlert(String title, String message, Alert.AlertType type) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
-    }
-    
-    private void saveGameState() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(SAVE_FILE))) {
-            // 这里需要实现序列化保存游戏状态
-            // 由于当前的Game类没有实现Serializable，这里先简化处理
-            System.out.println("游戏状态已保存");
-        } catch (IOException e) {
-            System.out.println("保存游戏状态失败: " + e.getMessage());
-        }
-    }
-    
-    private void loadGameState() {
-        File saveFile = new File(SAVE_FILE);
-        if (saveFile.exists()) {
-            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(SAVE_FILE))) {
-                // 这里需要实现反序列化加载游戏状态
-                System.out.println("游戏状态已加载");
-            } catch (IOException e) {
-                System.out.println("加载游戏状态失败: " + e.getMessage());
-            }
-        }
-    }
-    
-    public static void main(String[] args) {
-        launch(args);
     }
 } 
