@@ -53,6 +53,11 @@ public class ChessGameFX extends Application {
         Scene scene = new Scene(root, 1200, 800);
         primaryStage.setTitle("Chess Games - JavaFX版");
         primaryStage.setScene(scene);
+        
+        // 设置窗口最小尺寸，确保所有元素都能显示
+        primaryStage.setMinWidth(1100);
+        primaryStage.setMinHeight(800);
+        
         primaryStage.show();
     }
     
@@ -92,8 +97,9 @@ public class ChessGameFX extends Application {
     
     private void setupLayout() {
         // 左侧棋盘区域
-        VBox leftPanel = new VBox(10);
+        VBox leftPanel = new VBox();
         leftPanel.setPadding(new Insets(20));
+        leftPanel.setSpacing(10);
         
         Label chessTitle = new Label("棋盘");
         chessTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
@@ -104,40 +110,56 @@ public class ChessGameFX extends Application {
         chessBoard.setPadding(new Insets(20));
         chessBoard.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #888888; -fx-border-width: 2px;");
         
-        leftPanel.getChildren().addAll(chessTitle, chessBoard);
+        // 棋盘容器，居中显示
+        VBox chessBoardContainer = new VBox();
+        chessBoardContainer.setAlignment(Pos.CENTER);
+        chessBoardContainer.getChildren().add(chessBoard);
+        VBox.setVgrow(chessBoardContainer, Priority.ALWAYS);
         
-        // 右侧信息区域
-        HBox rightPanel = new HBox(20);
+        leftPanel.getChildren().addAll(chessTitle, chessBoardContainer);
+        
+        // 右侧信息区域 - 使用VBox而不是HBox，在窄屏幕时更好适应
+        VBox rightPanel = new VBox();
         rightPanel.setPadding(new Insets(20));
+        rightPanel.setSpacing(20);
+        rightPanel.setMinWidth(250);
+        rightPanel.setPrefWidth(300);
         
         // 游戏信息面板
-        VBox gameInfoPanel = new VBox(10);
-        gameInfoPanel.setPrefWidth(200);
+        VBox gameInfoPanel = new VBox();
+        gameInfoPanel.setSpacing(10);
         Label gameInfoTitle = new Label("游戏信息");
         gameInfoTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
-        gameInfoPanel.getChildren().addAll(
-            gameInfoTitle,
-            gameInfoLabel,
-            playerInfoLabel,
-            statusLabel
-        );
+        
+        // 使用ScrollPane包装信息标签，防止文本过长
+        VBox infoContent = new VBox(5);
+        infoContent.getChildren().addAll(gameInfoLabel, playerInfoLabel, statusLabel);
+        ScrollPane infoScroll = new ScrollPane(infoContent);
+        infoScroll.setFitToWidth(true);
+        infoScroll.setPrefHeight(120);
+        infoScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        infoScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        
+        gameInfoPanel.getChildren().addAll(gameInfoTitle, infoScroll);
         
         // 游戏列表面板
-        VBox gameListPanel = new VBox(10);
-        gameListPanel.setPrefWidth(200);
+        VBox gameListPanel = new VBox();
+        gameListPanel.setSpacing(10);
         Label gameListTitle = new Label("游戏列表");
         gameListTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
-        gameListView.setPrefHeight(200);
+        gameListView.setPrefHeight(150);
         gameListPanel.getChildren().addAll(gameListTitle, gameListView);
+        VBox.setVgrow(gameListView, Priority.ALWAYS);
         
         // 控制面板
-        VBox controlPanel = new VBox(10);
-        controlPanel.setPrefWidth(200);
+        VBox controlPanel = new VBox();
+        controlPanel.setSpacing(10);
         Label controlTitle = new Label("操作");
         controlTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
         
-        controlPanel.getChildren().addAll(
-            controlTitle,
+        // 操作按钮容器
+        VBox buttonContainer = new VBox(5);
+        buttonContainer.getChildren().addAll(
             passButton,
             bombButton,
             demoButton,
@@ -149,16 +171,45 @@ public class ChessGameFX extends Application {
         Button newReversiButton = new Button("新建Reversi");
         Button newGomokuButton = new Button("新建Gomoku");
         
+        // 设置按钮宽度一致
+        newPeaceButton.setMaxWidth(Double.MAX_VALUE);
+        newReversiButton.setMaxWidth(Double.MAX_VALUE);
+        newGomokuButton.setMaxWidth(Double.MAX_VALUE);
+        passButton.setMaxWidth(Double.MAX_VALUE);
+        bombButton.setMaxWidth(Double.MAX_VALUE);
+        demoButton.setMaxWidth(Double.MAX_VALUE);
+        
         newPeaceButton.setOnAction(e -> addNewGame("peace"));
         newReversiButton.setOnAction(e -> addNewGame("reversi"));
         newGomokuButton.setOnAction(e -> addNewGame("gomoku"));
         
-        controlPanel.getChildren().addAll(newPeaceButton, newReversiButton, newGomokuButton);
+        buttonContainer.getChildren().addAll(newPeaceButton, newReversiButton, newGomokuButton);
+        
+        // 将按钮容器放入ScrollPane
+        ScrollPane buttonScroll = new ScrollPane(buttonContainer);
+        buttonScroll.setFitToWidth(true);
+        buttonScroll.setPrefHeight(200);
+        buttonScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        buttonScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        
+        controlPanel.getChildren().addAll(controlTitle, buttonScroll);
+        
+        // 设置右侧面板的增长策略
+        VBox.setVgrow(gameListPanel, Priority.SOMETIMES);
+        VBox.setVgrow(controlPanel, Priority.SOMETIMES);
         
         rightPanel.getChildren().addAll(gameInfoPanel, gameListPanel, controlPanel);
         
-        root.setLeft(leftPanel);
+        // 主布局 - 左右分布
+        BorderPane.setMargin(leftPanel, new Insets(0, 10, 0, 0));
+        BorderPane.setMargin(rightPanel, new Insets(0, 0, 0, 10));
+        
+        root.setCenter(leftPanel);
         root.setRight(rightPanel);
+        
+        // 设置主容器的增长策略
+        HBox.setHgrow(leftPanel, Priority.ALWAYS);
+        HBox.setHgrow(rightPanel, Priority.NEVER);
     }
     
     private void updateDisplay() {
@@ -212,33 +263,32 @@ public class ChessGameFX extends Application {
     private Button createChessCell(int row, int col) {
         Button cell = new Button();
         cell.setPrefSize(40, 40);
-        cell.setStyle("-fx-background-color: #e6f3ff; -fx-border-color: #333333; -fx-border-width: 1px;");
+        cell.setMinSize(40, 40);
+        cell.setMaxSize(40, 40);
+        cell.setStyle("-fx-background-color: #e6f3ff; -fx-border-color: #333333; -fx-border-width: 1px; -fx-font-size: 18px;");
         
         Piece piece = currentGame.getBoards()[currentGame.getCurrentBoardIndex()].getPiece(row, col);
         
-        // 设置棋子显示
+        // 设置棋子显示 - 统一使用文本，确保格子大小不变
         if (piece == Piece.BLACK) {
-            Circle circle = new Circle(15, Color.BLACK);
-            cell.setGraphic(circle);
-            cell.setText("");
+            cell.setText("●");
+            cell.setStyle("-fx-background-color: #e6f3ff; -fx-border-color: #333333; -fx-border-width: 1px; -fx-font-size: 18px; -fx-text-fill: #000000; -fx-font-weight: bold;");
         } else if (piece == Piece.WHITE) {
-            Circle circle = new Circle(15, Color.WHITE);
-            circle.setStroke(Color.BLACK);
-            cell.setGraphic(circle);
-            cell.setText("");
+            cell.setText("●");
+            cell.setStyle("-fx-background-color: #e6f3ff; -fx-border-color: #333333; -fx-border-width: 1px; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-font-weight: bold;");
         } else if (piece == Piece.BLOCK) {
             cell.setText("■");
-            cell.setStyle("-fx-background-color: #888888; -fx-text-fill: #444444;");
+            cell.setStyle("-fx-background-color: #888888; -fx-border-color: #333333; -fx-border-width: 1px; -fx-font-size: 18px; -fx-text-fill: #444444;");
         } else if (piece == Piece.CRATER) {
             cell.setText("@");
-            cell.setStyle("-fx-background-color: #ffcccc; -fx-text-fill: red;");
+            cell.setStyle("-fx-background-color: #ffcccc; -fx-border-color: #333333; -fx-border-width: 1px; -fx-font-size: 18px; -fx-text-fill: red; -fx-font-weight: bold;");
         } else if (currentGame instanceof ReversiGame && 
                    ((ReversiGame)currentGame).isValidMove(row, col, currentGame.getCurrentPlayer().getPieceType())) {
             cell.setText("+");
-            cell.setStyle("-fx-background-color: #ccffcc; -fx-text-fill: green;");
+            cell.setStyle("-fx-background-color: #ccffcc; -fx-border-color: #333333; -fx-border-width: 1px; -fx-font-size: 18px; -fx-text-fill: green; -fx-font-weight: bold;");
         } else {
             cell.setText("");
-            cell.setGraphic(null);
+            cell.setStyle("-fx-background-color: #e6f3ff; -fx-border-color: #333333; -fx-border-width: 1px; -fx-font-size: 18px;");
         }
         
         // 设置点击事件
