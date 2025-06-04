@@ -124,7 +124,7 @@ public class GomokuGame extends Game {
         
 
     @Override
-    protected boolean processMoveInput(String input) {
+    public boolean processMoveInput(String input) {
         input = input.trim();
         if (input.equalsIgnoreCase("demo")) {
             isDemoMode = true;
@@ -269,7 +269,7 @@ public class GomokuGame extends Game {
     }
     
     @Override
-    protected void checkGameEnd() {
+    public void checkGameEnd() {
         // 检查是否有玩家获胜（五子连珠）
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
@@ -434,5 +434,17 @@ public class GomokuGame extends Game {
         System.out.println("Demo结束！\n\n\n");
         displayBoard();
 
+    }
+
+    public int getCurrentRound() {
+        return currentRound;
+    }
+    
+    public int getBlackBombs() {
+        return blackBombs;
+    }
+    
+    public int getWhiteBombs() {
+        return whiteBombs;
     }
 } 

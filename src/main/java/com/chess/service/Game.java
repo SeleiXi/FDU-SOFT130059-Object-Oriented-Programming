@@ -45,6 +45,17 @@ public class Game {
     protected Player currentPlayer;
     protected boolean isGameEnded;
     protected String[] GameModeList;
+    
+    // 公开访问器方法
+    public Board[] getBoards() { return boards; }
+    public Player getPlayer1() { return player1; }
+    public Player getPlayer2() { return player2; }
+    public Player getCurrentPlayer() { return currentPlayer; }
+    public GameMode getGameMode() { return gameMode; }
+    public int getGameId() { return gameId; }
+    public int getCurrentBoardIndex() { return currentBoardIndex; }
+    public boolean isGameEnded() { return isGameEnded; }
+    
     // 构造函数，添加游戏模式和ID参数
     public Game(String player1Name, String player2Name, GameMode gameMode, int gameId) {
         this.gameMode = gameMode;
@@ -161,7 +172,7 @@ public class Game {
     }
 
     // 检查游戏是否结束
-    protected void checkGameEnd() {
+    public void checkGameEnd() {
         isGameEnded = true;
         for (int i = 0; i < BOARD_COUNT; i++) {
             if (!boards[i].isFull()) {
@@ -172,7 +183,7 @@ public class Game {
     }
 
     // 判断是否有合法落子位置
-    protected boolean hasValidMove(Player player) {
+    public boolean hasValidMove(Player player) {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 if (isValidMove(i, j, player.getPieceType())) {
@@ -184,7 +195,7 @@ public class Game {
     }
     
     // 判断位置是否为合法落子位置
-    protected boolean isValidMove(int row, int col, Piece pieceType) {
+    public boolean isValidMove(int row, int col, Piece pieceType) {
         // 基本检查：位置必须在棋盘内且为空
         if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
             return false;
@@ -254,9 +265,9 @@ public class Game {
             if (hasPassMethod) {
                 System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 退出程序(quit)：");
             } else if (hasBombFeature) {
-                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 炸弹道具（输入“@FA”可炸掉FA位置上的敌方的棋子，并且让该位置不可放置棋子）  / 退出程序(quit)");
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 炸弹道具（输入\"@FA\"可炸掉FA位置上的敌方的棋子，并且让该位置不可放置棋子）  / 退出程序(quit)");
                 if(hasDemoMode){
-                    System.out.print(" / 演示模式（输入“demo”可演示当前游戏）：");
+                    System.out.print(" / 演示模式（输入\"demo\"可演示当前游戏）：");
                 }
             }
             else {
@@ -366,7 +377,7 @@ public class Game {
     }
 
     // 修改处理落子输入的方法，支持多位数字行号
-    protected boolean processMoveInput(String input) {
+    public boolean processMoveInput(String input) {
         try {
             // 找到第一个非数字字符的位置
             int letterPos = 0;
@@ -406,7 +417,7 @@ public class Game {
     }
 
     // 切换玩家
-    protected void switchPlayer() {
+    public void switchPlayer() {
         currentPlayer = (currentPlayer == player1) ? player2 : player1;
     }
 

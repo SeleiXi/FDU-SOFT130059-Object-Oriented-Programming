@@ -113,7 +113,7 @@ public class ReversiGame extends Game {
     
     // 重写处理落子输入方法
     @Override
-    protected boolean processMoveInput(String input) {
+    public boolean processMoveInput(String input) {
         try {
             // 找到第一个非数字字符的位置
             int letterPos = 0;
@@ -158,7 +158,7 @@ public class ReversiGame extends Game {
     
     // 重写检查游戏结束方法
     @Override
-    protected void checkGameEnd() {
+    public void checkGameEnd() {
         // 检查棋盘是否已满或者两位玩家都无法落子
         boolean boardFull = boards[currentBoardIndex].isFull();
         boolean noValidMoves = !hasValidMove(player1) && !hasValidMove(player2);
@@ -188,7 +188,7 @@ public class ReversiGame extends Game {
     
     // 判断位置是否为合法落子
     @Override
-    protected boolean isValidMove(int row, int col, Piece pieceType) {
+    public boolean isValidMove(int row, int col, Piece pieceType) {
         // 位置必须为空
         if (boards[currentBoardIndex].getPiece(row, col) != Piece.EMPTY) {
             return false;
@@ -260,7 +260,7 @@ public class ReversiGame extends Game {
     }
 
     // 计算特定类型棋子的数量
-    protected int countPieces(Piece pieceType) {
+    public int countPieces(Piece pieceType) {
         int count = 0;
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {

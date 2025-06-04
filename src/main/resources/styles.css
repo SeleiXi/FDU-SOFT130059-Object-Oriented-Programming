@@ -1,0 +1,81 @@
+/* 根容器样式 */
+.root {
+    -fx-font-family: "Microsoft YaHei", "SimSun", serif;
+    -fx-font-size: 14px;
+}
+
+/* 棋盘样式 */
+.chess-board {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #888888;
+    -fx-border-width: 2px;
+}
+
+.chess-cell {
+    -fx-border-color: #333333;
+    -fx-border-width: 1px;
+    -fx-background-color: #e6f3ff;
+}
+
+.chess-cell:hover {
+    -fx-background-color: #d4e8fc;
+}
+
+/* 按钮样式 */
+.button {
+    -fx-font-size: 12px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+}
+
+.button:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+/* 标签样式 */
+.label {
+    -fx-text-fill: #333333;
+}
+
+.title-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+/* 游戏列表样式 */
+.list-view {
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-background-color: white;
+}
+
+.list-cell {
+    -fx-padding: 8px;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #f0f8ff;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: white;
+}
+
+/* 信息面板样式 */
+.info-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 15px;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+}
+
+/* 状态栏样式 */
+.status-bar {
+    -fx-background-color: #343a40;
+    -fx-text-fill: white;
+    -fx-padding: 5px 15px;
+} 
