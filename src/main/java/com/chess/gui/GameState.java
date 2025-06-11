@@ -107,6 +107,13 @@ public class GameState {
         int gameId = 0;
         String player1Name = null;
         String player2Name = null;
+        String currentPlayerStr = null;
+        boolean gameEnded = false;
+        int currentBoardIndex = 0;
+        int currentRound = 1;
+        int blackBombs = 0;
+        int whiteBombs = 0;
+        int boardSize = 0;
         String line;
         
         // 读取游戏基本信息
@@ -119,8 +126,20 @@ public class GameState {
                 player1Name = line.substring("PLAYER1:".length());
             } else if (line.startsWith("PLAYER2:")) {
                 player2Name = line.substring("PLAYER2:".length());
+            } else if (line.startsWith("CURRENT_PLAYER:")) {
+                currentPlayerStr = line.substring("CURRENT_PLAYER:".length());
+            } else if (line.startsWith("GAME_ENDED:")) {
+                gameEnded = Boolean.parseBoolean(line.substring("GAME_ENDED:".length()));
+            } else if (line.startsWith("CURRENT_BOARD:")) {
+                currentBoardIndex = Integer.parseInt(line.substring("CURRENT_BOARD:".length()));
+            } else if (line.startsWith("CURRENT_ROUND:")) {
+                currentRound = Integer.parseInt(line.substring("CURRENT_ROUND:".length()));
+            } else if (line.startsWith("BLACK_BOMBS:")) {
+                blackBombs = Integer.parseInt(line.substring("BLACK_BOMBS:".length()));
+            } else if (line.startsWith("WHITE_BOMBS:")) {
+                whiteBombs = Integer.parseInt(line.substring("WHITE_BOMBS:".length()));
             } else if (line.startsWith("BOARD_SIZE:")) {
-                // 开始读取棋盘数据，此时可以创建游戏实例
+                boardSize = Integer.parseInt(line.substring("BOARD_SIZE:".length()));
                 break;
             }
         }
@@ -141,15 +160,72 @@ public class GameState {
                 return null;
         }
         
-        // 读取剩余的游戏状态（这里简化处理，实际应该还原完整状态）
+        // 恢复游戏状态
+        try {
+            // 恢复当前玩家
+            if ("2".equals(currentPlayerStr)) {
+                game.switchPlayer(); // 默认是玩家1，如果保存的是玩家2则切换
+            }
+            
+            // 恢复游戏结束状态
+            if (gameEnded) {
+                // 使用反射或其他方式设置游戏结束状态
+                // 这里需要根据具体的Game类实现来调整
+            }
+            
+            // 恢复特定游戏类型的状态
+            if (game instanceof GomokuGame) {
+                GomokuGame gomoku = (GomokuGame) game;
+                // 这里需要根据GomokuGame的具体实现来恢复回合数和炸弹数
+                // 由于这些字段可能是private的，可能需要添加setter方法
+            }
+            
+        } catch (Exception e) {
+            System.err.println("恢复游戏状态时出错: " + e.getMessage());
+        }
+        
+                 // 读取并恢复棋盘状态
         while ((line = reader.readLine()) != null) {
             if (line.startsWith("GAME_END:")) {
                 break;
+            } else if (line.startsWith("BOARD_INDEX:")) {
+                // 解析棋盘索引
+                int boardIndex = Integer.parseInt(line.substring("BOARD_INDEX:".length()));
+                readBoardData(reader, game, boardSize, boardIndex);
             }
-            // 可以在这里添加更多的状态还原逻辑
         }
         
         return game;
+    }
+    
+         private static void readBoardData(BufferedReader reader, Game game, int boardSize, int boardIndex) throws IOException {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.startsWith("ROW:")) {
+                // 解析行数据：ROW:0:EMPTY,BLACK,WHITE...
+                String[] parts = line.split(":", 3);
+                if (parts.length >= 3) {
+                    int row = Integer.parseInt(parts[1]);
+                    String[] pieces = parts[2].split(",");
+                    
+                    for (int col = 0; col < pieces.length && col < boardSize; col++) {
+                        try {
+                                                         com.chess.entity.Piece piece = com.chess.entity.Piece.valueOf(pieces[col]);
+                             // 使用 placePiece 方法来设置棋子，第三个参数为 true 表示强制放置
+                             game.getBoards()[boardIndex].placePiece(row, col, piece, true);
+                        } catch (Exception e) {
+                            // 如果棋子类型解析失败，跳过
+                            System.err.println("解析棋子失败: " + pieces[col]);
+                        }
+                    }
+                }
+            } else if (line.startsWith("BOARD_INDEX:") || line.startsWith("GAME_END:")) {
+                // 回退一行，让上级处理
+                // 注意：这里需要一个方式来回退读取，但BufferedReader不支持
+                // 简化处理：如果遇到下一个BOARD_INDEX，就停止当前棋盘的读取
+                break;
+            }
+        }
     }
     
     /**

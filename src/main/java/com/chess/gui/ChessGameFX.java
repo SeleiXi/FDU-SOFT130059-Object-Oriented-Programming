@@ -17,6 +17,7 @@ import com.chess.service.ReversiGame;
 import com.chess.service.GomokuGame;
 import com.chess.entity.Piece;
 import com.chess.entity.GomokuBoard;
+import com.chess.gui.GameState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +47,8 @@ public class ChessGameFX extends Application {
     
     @Override
     public void start(Stage primaryStage) {
-        initializeGames();
         initializeComponents();
+        initializeGames();
         setupLayout();
         updateDisplay();
         logMessage("应用程序启动成功");
@@ -60,15 +61,37 @@ public class ChessGameFX extends Application {
         primaryStage.setMinWidth(1400);
         primaryStage.setMinHeight(800);
         
+        // 设置窗口关闭时自动保存游戏状态
+        primaryStage.setOnCloseRequest(event -> {
+            saveCurrentStateWithLog();
+            logMessage("程序退出，已自动保存游戏状态");
+        });
+        
         primaryStage.show();
     }
     
     private void initializeGames() {
-        games = new ArrayList<>();
-        games.add(new Game("Player1", "Player2", Game.GameMode.PEACE, 1));
-        games.add(new ReversiGame("Player1", "Player2", 2));
-        games.add(new GomokuGame("Player1", "Player2", 3));
-        currentGame = games.get(currentGameIndex);
+        // 尝试加载保存的游戏状态
+        GameState.GameStateData savedData = GameState.loadGameState();
+        if (savedData != null && !savedData.games.isEmpty()) {
+            // 加载成功，使用保存的状态
+            this.games = savedData.games;
+            this.currentGameIndex = savedData.currentGameIndex;
+            // 确保索引在有效范围内
+            if (currentGameIndex >= games.size()) {
+                currentGameIndex = games.size() - 1;
+            }
+            currentGame = games.get(currentGameIndex);
+            logMessage("已加载上次保存的游戏进度，共 " + games.size() + " 个游戏");
+        } else {
+            // 没有保存的状态或加载失败，创建默认游戏
+            games = new ArrayList<>();
+            games.add(new Game("Player1", "Player2", Game.GameMode.PEACE, 1));
+            games.add(new ReversiGame("Player1", "Player2", 2));
+            games.add(new GomokuGame("Player1", "Player2", 3));
+            currentGame = games.get(currentGameIndex);
+            logMessage("创建了默认游戏，共 " + games.size() + " 个游戏");
+        }
     }
     
     private void initializeComponents() {
@@ -227,7 +250,31 @@ public class ChessGameFX extends Application {
         newReversiButton.setOnAction(e -> addNewGame("reversi"));
         newGomokuButton.setOnAction(e -> addNewGame("gomoku"));
         
-        buttonContainer.getChildren().addAll(newPeaceButton, newReversiButton, newGomokuButton);
+        // 保存和加载按钮
+        Button saveButton = new Button("保存进度");
+        Button loadButton = new Button("加载进度");
+        
+        // 设置按钮宽度一致
+        saveButton.setMaxWidth(Double.MAX_VALUE);
+        loadButton.setMaxWidth(Double.MAX_VALUE);
+        
+        // 设置按钮事件
+        saveButton.setOnAction(e -> {
+            saveCurrentStateWithLog();
+            showAlert("保存成功", "游戏进度已保存", Alert.AlertType.INFORMATION);
+        });
+        loadButton.setOnAction(e -> {
+            loadSavedState();
+        });
+        
+        buttonContainer.getChildren().addAll(
+            newPeaceButton, 
+            newReversiButton, 
+            newGomokuButton,
+            new Separator(),
+            saveButton,
+            loadButton
+        );
         
         // 将按钮容器放入ScrollPane
         ScrollPane buttonScroll = new ScrollPane(buttonContainer);
@@ -398,6 +445,9 @@ public class ChessGameFX extends Application {
             currentGame.checkGameEnd();
             updateDisplay();
             
+            // 自动保存游戏状态
+            saveCurrentState();
+            
             if (currentGame.isGameEnded()) {
                 logMessage("游戏结束！");
                 showGameResult();
@@ -421,6 +471,9 @@ public class ChessGameFX extends Application {
             bombButton.setText("炸弹模式");
             gomoku.switchPlayer();
             updateDisplay();
+            
+            // 自动保存游戏状态
+            saveCurrentState();
         } else {
             logMessage("炸弹使用失败 - 可能是无效位置或炸弹不足");
         }
@@ -496,6 +549,9 @@ public class ChessGameFX extends Application {
                 logMessage("玩家 " + playerName + " Pass - 无合法落子位置");
                 currentGame.switchPlayer();
                 updateDisplay();
+                
+                // 自动保存游戏状态
+                saveCurrentState();
             } else {
                 logMessage("玩家 " + playerName + " 尝试Pass失败 - 还有合法落子位置");
                 showAlert("无法Pass", "当前有合法落子位置，不能Pass", Alert.AlertType.WARNING);
@@ -549,6 +605,9 @@ public class ChessGameFX extends Application {
         
         games.add(newGame);
         updateGameList();
+        
+        // 自动保存游戏状态
+        saveCurrentState();
     }
     
     private void showGameResult() {
@@ -600,5 +659,40 @@ public class ChessGameFX extends Application {
         
         // 自动滚动到底部
         logArea.setScrollTop(Double.MAX_VALUE);
+    }
+    
+    private void saveCurrentState() {
+        try {
+            GameState.saveGameState(games, currentGameIndex);
+            // 不记录日志，避免在自动保存时产生过多日志信息
+        } catch (Exception e) {
+            logMessage("保存游戏状态失败: " + e.getMessage());
+        }
+    }
+    
+    private void saveCurrentStateWithLog() {
+        try {
+            GameState.saveGameState(games, currentGameIndex);
+            logMessage("游戏状态已手动保存");
+        } catch (Exception e) {
+            logMessage("保存游戏状态失败: " + e.getMessage());
+        }
+    }
+    
+    private void loadSavedState() {
+        GameState.GameStateData data = GameState.loadGameState();
+        if (data != null && !data.games.isEmpty()) {
+            this.games = data.games;
+            this.currentGameIndex = data.currentGameIndex;
+            // 确保索引在有效范围内
+            if (currentGameIndex >= games.size()) {
+                currentGameIndex = games.size() - 1;
+            }
+            this.currentGame = games.get(currentGameIndex);
+            updateDisplay();
+            logMessage("游戏状态已恢复，共加载 " + games.size() + " 个游戏");
+        } else {
+            logMessage("没有找到保存的游戏状态或文件损坏");
+        }
     }
 } 
