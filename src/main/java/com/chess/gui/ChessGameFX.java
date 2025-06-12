@@ -40,6 +40,7 @@ public class ChessGameFX extends Application {
     private boolean bombMode = false;
     private Game currentGame;
     private Button[][] chessCells;
+    private Stage primaryStage;
     
     public static void main(String[] args) {
         launch(args);
@@ -47,6 +48,7 @@ public class ChessGameFX extends Application {
     
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         initializeComponents();
         initializeGames();
         setupLayout();
@@ -65,9 +67,9 @@ public class ChessGameFX extends Application {
         primaryStage.setOnCloseRequest(event -> {
             try {
                 GameState.saveGameState(games, currentGameIndex);
-                logMessage("程序退出，游戏状态已保存到 pj.game");
+                System.out.println("程序退出，游戏状态已保存到 pj.game");
             } catch (Exception e) {
-                logMessage("保存游戏状态失败: " + e.getMessage());
+                System.out.println("保存游戏状态失败: " + e.getMessage());
             }
         });
         
@@ -254,10 +256,26 @@ public class ChessGameFX extends Application {
         newReversiButton.setOnAction(e -> addNewGame("reversi"));
         newGomokuButton.setOnAction(e -> addNewGame("gomoku"));
         
+        // 退出游戏按钮
+        Button exitButton = new Button("退出游戏");
+        exitButton.setMaxWidth(Double.MAX_VALUE);
+        exitButton.setStyle("-fx-background-color: #ffcccc; -fx-text-fill: #cc0000; -fx-font-weight: bold;");
+        exitButton.setOnAction(e -> {
+            try {
+                GameState.saveGameState(games, currentGameIndex);
+                logMessage("程序退出，游戏状态已保存到 pj.game");
+            } catch (Exception ex) {
+                logMessage("保存游戏状态失败: " + ex.getMessage());
+            }
+            primaryStage.close();
+        });
+        
         buttonContainer.getChildren().addAll(
             newPeaceButton, 
             newReversiButton, 
-            newGomokuButton
+            newGomokuButton,
+            new Separator(),
+            exitButton
         );
         
         // 将按钮容器放入ScrollPane
