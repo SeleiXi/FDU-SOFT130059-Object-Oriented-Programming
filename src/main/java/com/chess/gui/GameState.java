@@ -59,7 +59,7 @@ public class GameState {
                 writer.println("GAME_END:" + i);
             }
             
-            System.out.println("游戏状态已保存到 " + SAVE_FILE);
+            // System.out.println("游戏状态已保存到 " + SAVE_FILE);
         } catch (IOException e) {
             System.err.println("保存游戏状态失败: " + e.getMessage());
         }

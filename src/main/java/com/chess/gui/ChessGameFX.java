@@ -63,8 +63,12 @@ public class ChessGameFX extends Application {
         
         // 设置窗口关闭时自动保存游戏状态
         primaryStage.setOnCloseRequest(event -> {
-            saveCurrentStateWithLog();
-            logMessage("程序退出，已自动保存游戏状态");
+            try {
+                GameState.saveGameState(games, currentGameIndex);
+                logMessage("程序退出，游戏状态已保存到 pj.game");
+            } catch (Exception e) {
+                logMessage("保存游戏状态失败: " + e.getMessage());
+            }
         });
         
         primaryStage.show();
@@ -250,30 +254,10 @@ public class ChessGameFX extends Application {
         newReversiButton.setOnAction(e -> addNewGame("reversi"));
         newGomokuButton.setOnAction(e -> addNewGame("gomoku"));
         
-        // 保存和加载按钮
-        Button saveButton = new Button("保存进度");
-        Button loadButton = new Button("加载进度");
-        
-        // 设置按钮宽度一致
-        saveButton.setMaxWidth(Double.MAX_VALUE);
-        loadButton.setMaxWidth(Double.MAX_VALUE);
-        
-        // 设置按钮事件
-        saveButton.setOnAction(e -> {
-            saveCurrentStateWithLog();
-            showAlert("保存成功", "游戏进度已保存", Alert.AlertType.INFORMATION);
-        });
-        loadButton.setOnAction(e -> {
-            loadSavedState();
-        });
-        
         buttonContainer.getChildren().addAll(
             newPeaceButton, 
             newReversiButton, 
-            newGomokuButton,
-            new Separator(),
-            saveButton,
-            loadButton
+            newGomokuButton
         );
         
         // 将按钮容器放入ScrollPane
