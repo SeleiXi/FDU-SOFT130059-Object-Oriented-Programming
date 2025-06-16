@@ -97,6 +97,12 @@ public class ChessGameFX extends Application {
                 currentGameIndex = games.size() - 1;
             }
             currentGame = games.get(currentGameIndex);
+            
+            // 检查所有游戏的结束状态
+            for (Game game : games) {
+                game.checkGameEnd();
+            }
+            
             logMessage("已加载上次保存的游戏进度，共 " + games.size() + " 个游戏");
         } else {
             // 没有保存的状态或加载失败，创建默认游戏
@@ -105,6 +111,12 @@ public class ChessGameFX extends Application {
             games.add(new ReversiGame("Player1", "Player2", 2));
             games.add(new GomokuGame("Player1", "Player2", 3));
             currentGame = games.get(currentGameIndex);
+            
+            // 检查所有游戏的结束状态
+            for (Game game : games) {
+                game.checkGameEnd();
+            }
+            
             logMessage("创建了默认游戏，共 " + games.size() + " 个游戏");
         }
     }
@@ -148,7 +160,12 @@ public class ChessGameFX extends Application {
             if (newVal != null && newVal.intValue() >= 0 && newVal.intValue() < games.size()) {
                 currentGameIndex = newVal.intValue();
                 currentGame = games.get(currentGameIndex);
-                // logMessage("切换到游戏 #" + currentGame.getGameId() + " (" + currentGame.getGameMode().getName() + ")");
+                
+                // 显示切换游戏的日志信息
+                if (currentGame.isGameEnded()) {
+                    logMessage("该游戏已结束");
+                }
+                
                 updateDisplay();
             }
         });
@@ -500,10 +517,16 @@ public class ChessGameFX extends Application {
             bombMode = false;
             bombButton.setText("炸弹模式");
             gomoku.switchPlayer();
+            gomoku.checkGameEnd(); // 检查游戏是否结束
             updateDisplay();
             
             // 自动保存游戏状态
             saveCurrentState();
+            
+            if (currentGame.isGameEnded()) {
+                logMessage("游戏结束！");
+                showGameResult();
+            }
         } else {
             logMessage("炸弹使用失败 - 位置有误或炸弹不足，请重新输入！");
         }
@@ -632,10 +655,16 @@ public class ChessGameFX extends Application {
             if (!reversi.hasValidMove(currentGame.getCurrentPlayer())) {
                 logMessage("玩家 " + playerName + " Pass - 无合法落子位置");
                 currentGame.switchPlayer();
+                reversi.checkGameEnd(); // 检查游戏是否结束
                 updateDisplay();
                 
                 // 自动保存游戏状态
                 saveCurrentState();
+                
+                if (currentGame.isGameEnded()) {
+                    logMessage("游戏结束！");
+                    showGameResult();
+                }
             } else {
                 logMessage("Pass失败 - 当前有合法落子位置，不能Pass！");
                 showAlert("无法Pass", "当前有合法落子位置，不能Pass", Alert.AlertType.WARNING);
