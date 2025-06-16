@@ -378,100 +378,100 @@ public class GomokuGame extends Game {
      * @param command 要执行的命令
      * @return 是否成功执行命令
      */
-    @Override
-    protected boolean executeCommand(String command) {
-        command = command.trim().toUpperCase();
+    // @Override
+    // protected boolean executeCommand(String command) {
+    //     command = command.trim().toUpperCase();
         
-        // 处理pass命令（五子棋中一般不使用pass）
-        if (command.equalsIgnoreCase("pass")) {
-            System.out.println("五子棋游戏中不支持Pass命令");
-            return false;
-        }
+    //     // 处理pass命令（五子棋中一般不使用pass）
+    //     if (command.equalsIgnoreCase("pass")) {
+    //         System.out.println("五子棋游戏中不支持Pass命令");
+    //         return false;
+    //     }
         
-        // 处理炸弹道具输入：@XY
-        if (command.startsWith("@")) {
-            if ((currentPlayer == player1 && blackBombs == 0) || (currentPlayer == player2 && whiteBombs == 0)) {
-                System.out.println("你没有剩余炸弹了！");
-                return false;
-            }
-            if (command.length() < 3) {
-                System.out.println("炸弹输入格式有误，请使用@+纵坐标+横坐标（如：@FA）");
-                return false;
-            }
+    //     // 处理炸弹道具输入：@XY
+    //     if (command.startsWith("@")) {
+    //         if ((currentPlayer == player1 && blackBombs == 0) || (currentPlayer == player2 && whiteBombs == 0)) {
+    //             System.out.println("你没有剩余炸弹了！");
+    //             return false;
+    //         }
+    //         if (command.length() < 3) {
+    //             System.out.println("炸弹输入格式有误，请使用@+纵坐标+横坐标（如：@FA）");
+    //             return false;
+    //         }
             
-            try {
-                String rowStr = command.substring(1, command.length() - 1);
-                String colStr = command.substring(command.length() - 1);
-                int row = GomokuBoard.parseRowLabel(rowStr);
-                int col = GomokuBoard.parseColLabel(colStr);
+    //         try {
+    //             String rowStr = command.substring(1, command.length() - 1);
+    //             String colStr = command.substring(command.length() - 1);
+    //             int row = GomokuBoard.parseRowLabel(rowStr);
+    //             int col = GomokuBoard.parseColLabel(colStr);
                 
-                if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
-                    System.out.println("输入超出棋盘范围，请重新输入！");
-                    return false;
-                }
+    //             if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+    //                 System.out.println("输入超出棋盘范围，请重新输入！");
+    //                 return false;
+    //             }
                 
-                Piece target = boards[currentBoardIndex].getPiece(row, col);
-                // 只能炸掉对方棋子，不能炸空、障碍物、弹坑、自己棋子
-                if (target == Piece.EMPTY || target == Piece.BLOCK || target == Piece.CRATER || target == currentPlayer.getPieceType()) {
-                    System.out.println("只能炸掉对方的棋子！");
-                    return false;
-                }
+    //             Piece target = boards[currentBoardIndex].getPiece(row, col);
+    //             // 只能炸掉对方棋子，不能炸空、障碍物、弹坑、自己棋子
+    //             if (target == Piece.EMPTY || target == Piece.BLOCK || target == Piece.CRATER || target == currentPlayer.getPieceType()) {
+    //                 System.out.println("只能炸掉对方的棋子！");
+    //                 return false;
+    //             }
                 
-                // 执行炸弹效果
-                boards[currentBoardIndex].placePiece(row, col, Piece.CRATER, true);
-                if (currentPlayer == player1) {
-                    blackBombs--;
-                } else {
-                    whiteBombs--;
-                }
-                System.out.println("炸弹已使用，位置(" + rowStr + colStr + ")已变为弹坑！");
-                return true;
-            } catch (Exception e) {
-                System.out.println("炸弹输入格式有误，请使用@+纵坐标+横坐标（如：@FA）");
-                return false;
-            }
-        }
+    //             // 执行炸弹效果
+    //             boards[currentBoardIndex].placePiece(row, col, Piece.CRATER, true);
+    //             if (currentPlayer == player1) {
+    //                 blackBombs--;
+    //             } else {
+    //                 whiteBombs--;
+    //             }
+    //             System.out.println("炸弹已使用，位置(" + rowStr + colStr + ")已变为弹坑！");
+    //             return true;
+    //         } catch (Exception e) {
+    //             System.out.println("炸弹输入格式有误，请使用@+纵坐标+横坐标（如：@FA）");
+    //             return false;
+    //         }
+    //     }
         
-        // 处理普通落子
-        if (command.length() >= 2) {
-            try {
-                String rowStr = command.substring(0, command.length() - 1);
-                String colStr = command.substring(command.length() - 1);
-                int row = GomokuBoard.parseRowLabel(rowStr);
-                int col = GomokuBoard.parseColLabel(colStr);
+    //     // 处理普通落子
+    //     if (command.length() >= 2) {
+    //         try {
+    //             String rowStr = command.substring(0, command.length() - 1);
+    //             String colStr = command.substring(command.length() - 1);
+    //             int row = GomokuBoard.parseRowLabel(rowStr);
+    //             int col = GomokuBoard.parseColLabel(colStr);
                 
-                if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
-                    System.out.println("输入超出棋盘范围，请重新输入！");
-                    return false;
-                }
+    //             if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+    //                 System.out.println("输入超出棋盘范围，请重新输入！");
+    //                 return false;
+    //             }
                 
-                // 检查障碍物和弹坑
-                Piece cell = boards[currentBoardIndex].getPiece(row, col);
-                if (cell == Piece.BLOCK) {
-                    System.out.println("该位置为障碍物，无法落子！");
-                    return false;
-                }
-                if (cell == Piece.CRATER) {
-                    System.out.println("该位置为弹坑，无法落子！");
-                    return false;
-                }
+    //             // 检查障碍物和弹坑
+    //             Piece cell = boards[currentBoardIndex].getPiece(row, col);
+    //             if (cell == Piece.BLOCK) {
+    //                 System.out.println("该位置为障碍物，无法落子！");
+    //                 return false;
+    //             }
+    //             if (cell == Piece.CRATER) {
+    //                 System.out.println("该位置为弹坑，无法落子！");
+    //                 return false;
+    //             }
                 
-                boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(), false);
-                if (!validMove) {
-                    System.out.println("落子位置有误，请重新输入！");
-                    return false;
-                }
+    //             boolean validMove = boards[currentBoardIndex].placePiece(row, col, currentPlayer.getPieceType(), false);
+    //             if (!validMove) {
+    //                 System.out.println("落子位置有误，请重新输入！");
+    //                 return false;
+    //             }
                 
-                if (currentPlayer == player1) {
-                    currentRound++;
-                }
-                return true;
-            } catch (Exception e) {
-                System.out.println("输入格式有误，请使用纵坐标+横坐标（如：1A / FA）");
-                return false;
-            }
-        }
+    //             if (currentPlayer == player1) {
+    //                 currentRound++;
+    //             }
+    //             return true;
+    //         } catch (Exception e) {
+    //             System.out.println("输入格式有误，请使用纵坐标+横坐标（如：1A / FA）");
+    //             return false;
+    //         }
+    //     }
         
-        return false;
-    }
+    //     return false;
+    // }
 } 
