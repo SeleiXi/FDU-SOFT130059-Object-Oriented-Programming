@@ -730,7 +730,7 @@ public class ChessGameFX extends Application {
         // }
         
         // 在后台线程执行，避免阻塞UI
-        CompletableFuture.runAsync(() -> {
+            CompletableFuture.runAsync(() -> {
             try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(filename))) {
                 javafx.application.Platform.runLater(() -> {
                     demoMode = true;  // 开始演示模式
@@ -746,23 +746,23 @@ public class ChessGameFX extends Application {
                     lineNumber++;
                     final int currentLineNumber = lineNumber;
                     command = command.trim();
-                    
-                    // 跳过空行和注释
-                    if (command.isEmpty() || command.startsWith("#")) {
-                        continue;
-                    }
-                    
-                    // 检查游戏是否已结束
-                    if (currentGame.isGameEnded()) {
-                        javafx.application.Platform.runLater(() -> {
+            
+            // 跳过空行和注释
+            if (command.isEmpty() || command.startsWith("#")) {
+                continue;
+            }
+            
+                // 检查游戏是否已结束
+                if (currentGame.isGameEnded()) {
+                    javafx.application.Platform.runLater(() -> {
                             demoMode = false;  // 游戏结束时退出演示模式
-                            logMessage("演示结束：游戏已结束");
+                        logMessage("演示结束：游戏已结束");
                             statusLabel.setText("状态: 就绪");
                             updateButtons();  // 恢复按钮状态
-                        });
-                        break;
-                    }
-                    
+                    });
+                    break;
+                }
+                
                     final String finalCommand = command;
                     
                     // 在UI线程中执行命令
@@ -784,18 +784,18 @@ public class ChessGameFX extends Application {
                     
                     // 检查游戏是否结束
                     if (currentGame.isGameEnded()) {
-                        javafx.application.Platform.runLater(() -> {
+                javafx.application.Platform.runLater(() -> {
                             demoMode = false;  // 游戏结束时退出演示模式
                             logMessage("演示过程中游戏结束！");
                             statusLabel.setText("状态: 就绪");
                             updateButtons();  // 恢复按钮状态
                             showGameResult();
-                        });
-                        break;
-                    }
-                }
-                
-                javafx.application.Platform.runLater(() -> {
+                });
+                break;
+            }
+        }
+        
+        javafx.application.Platform.runLater(() -> {
                     demoMode = false;  // 结束演示模式
                     logMessage("playback命令执行完成");
                     statusLabel.setText("状态: 就绪");
@@ -843,35 +843,35 @@ public class ChessGameFX extends Application {
         
         // 处理落子命令
         if (command.length() >= 2) {
-            boolean success = false;
+        boolean success = false;
             
-            if (command.startsWith("@")) {
+        if (command.startsWith("@")) {
                 // 炸弹命令 - 仅适用于Gomoku游戏
                 if (currentGame instanceof GomokuGame) {
                     GomokuGame gomoku = (GomokuGame) currentGame;
-                    logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 使用炸弹 " + command);
-                    success = gomoku.processMoveInput(command);
-                    if (success) {
-                        logMessage("炸弹使用成功");
-                    } else {
+            logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 使用炸弹 " + command);
+            success = gomoku.processMoveInput(command);
+            if (success) {
+                logMessage("炸弹使用成功");
+            } else {
                         logMessage("炸弹使用失败 - 位置有误或炸弹不足！");
-                    }
-                } else {
+            }
+        } else {
                     logMessage("第 " + lineNumber + " 行: 炸弹命令仅在Gomoku游戏中支持");
                     return false;
                 }
             } else {
                 // 普通落子命令 - 适用于所有游戏类型
-                logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 在 " + command + " 位置落子");
+            logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 在 " + command + " 位置落子");
                 success = currentGame.processMoveInput(command);
-                if (success) {
-                    logMessage("落子成功");
-                } else {
-                    logMessage("落子位置有误，请重新输入！");
-                }
-            }
-            
             if (success) {
+                logMessage("落子成功");
+            } else {
+                    logMessage("落子位置有误，请重新输入！");
+            }
+        }
+        
+        if (success) {
                 currentGame.switchPlayer();
                 currentGame.checkGameEnd();
                 return true;
