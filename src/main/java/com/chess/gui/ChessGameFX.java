@@ -544,7 +544,7 @@ public class ChessGameFX extends Application {
     private void updateButtons() {
         passButton.setVisible(currentGame instanceof ReversiGame);
         bombButton.setVisible(currentGame instanceof GomokuGame);
-        demoButton.setVisible(currentGame instanceof GomokuGame);
+        demoButton.setVisible(true); // 演示模式支持所有游戏类型
     }
     
     private void handlePass() {
@@ -599,10 +599,13 @@ public class ChessGameFX extends Application {
     
     /**
      * 执行演示脚本（Playback模式）
+     * 支持所有游戏类型：Peace、Reversi、Gomoku
+     * 
      * 脚本格式：每行一个命令
-     * - 普通落子：行列坐标，如 "A1", "B2" 等
-     * - 炸弹：@行列坐标，如 "@A1", "@B2" 等
-     * - Pass命令：pass
+     * - Peace/Reversi游戏落子：数字+字母格式，如 "1A", "2B" 等
+     * - Gomoku游戏落子：字母+数字格式，如 "A1", "B2" 等
+     * - 炸弹命令（仅Gomoku）：@字母数字格式，如 "@A1", "@B2" 等
+     * - Pass命令（仅Reversi）：pass
      * - 注释：# 开头的行会被忽略
      * 
      * @param filename 脚本文件路径
@@ -690,15 +693,9 @@ public class ChessGameFX extends Application {
      * @return 是否成功执行命令
      */
     private boolean executeDemoCommand(String command, int lineNumber) {
-        if (!(currentGame instanceof GomokuGame)) {
-            logMessage("演示模式仅支持Gomoku游戏");
-            return false;
-        }
-        
-        GomokuGame gomoku = (GomokuGame) currentGame;
         String playerName = currentGame.getCurrentPlayer().getName();
         
-        // 处理pass命令
+        // 处理pass命令 - 仅适用于Reversi游戏
         if (command.equalsIgnoreCase("pass")) {
             if (currentGame instanceof ReversiGame) {
                 ReversiGame reversi = (ReversiGame) currentGame;
@@ -711,7 +708,7 @@ public class ChessGameFX extends Application {
                     return false;
                 }
             } else {
-                logMessage("第 " + lineNumber + " 行: Pass命令在当前游戏模式下不支持");
+                logMessage("第 " + lineNumber + " 行: Pass命令仅在Reversi游戏中支持");
                 return false;
             }
         }
@@ -721,28 +718,34 @@ public class ChessGameFX extends Application {
             boolean success = false;
             
             if (command.startsWith("@")) {
-                // 炸弹命令
-                logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 使用炸弹 " + command);
-                success = gomoku.processMoveInput(command);
-                if (success) {
-                    logMessage("炸弹使用成功");
+                // 炸弹命令 - 仅适用于Gomoku游戏
+                if (currentGame instanceof GomokuGame) {
+                    GomokuGame gomoku = (GomokuGame) currentGame;
+                    logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 使用炸弹 " + command);
+                    success = gomoku.processMoveInput(command);
+                    if (success) {
+                        logMessage("炸弹使用成功");
+                    } else {
+                        logMessage("炸弹使用失败");
+                    }
                 } else {
-                    logMessage("炸弹使用失败");
+                    logMessage("第 " + lineNumber + " 行: 炸弹命令仅在Gomoku游戏中支持");
+                    return false;
                 }
             } else {
-                // 普通落子命令
+                // 普通落子命令 - 适用于所有游戏类型
                 logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 在 " + command + " 位置落子");
-                success = gomoku.processMoveInput(command);
+                success = currentGame.processMoveInput(command);
                 if (success) {
                     logMessage("落子成功");
                 } else {
-                    logMessage("落子失败");
+                    logMessage("落子失败 - 可能是无效位置或位置已被占用");
                 }
             }
             
             if (success) {
-                gomoku.switchPlayer();
-                gomoku.checkGameEnd();
+                currentGame.switchPlayer();
+                currentGame.checkGameEnd();
                 return true;
             }
         }
