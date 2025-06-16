@@ -148,7 +148,7 @@ public class ChessGameFX extends Application {
             if (newVal != null && newVal.intValue() >= 0 && newVal.intValue() < games.size()) {
                 currentGameIndex = newVal.intValue();
                 currentGame = games.get(currentGameIndex);
-                logMessage("切换到游戏 #" + currentGame.getGameId() + " (" + currentGame.getGameMode().getName() + ")");
+                // logMessage("切换到游戏 #" + currentGame.getGameId() + " (" + currentGame.getGameMode().getName() + ")");
                 updateDisplay();
             }
         });
@@ -355,6 +355,7 @@ public class ChessGameFX extends Application {
         updateGameInfo();
         updateGameList();
         updateButtons();
+        updateStatusLabel();
     }
     
     private void updateChessBoard() {
@@ -446,7 +447,7 @@ public class ChessGameFX extends Application {
         }
         
         if (currentGame.isGameEnded()) {
-            logMessage("当前游戏已结束，无法继续下棋");
+            logMessage("游戏已结束，无法继续下棋！请切换到其他游戏或创建新游戏。");
             showAlert("游戏已结束", "当前游戏已结束，请切换到其他游戏", Alert.AlertType.INFORMATION);
             return;
         }
@@ -482,7 +483,7 @@ public class ChessGameFX extends Application {
                 showGameResult();
             }
         } else {
-            logMessage("玩家 " + playerName + " 在 " + input + " 位置落子失败");
+            logMessage("落子位置有误，请重新输入！");
         }
     }
     
@@ -504,7 +505,7 @@ public class ChessGameFX extends Application {
             // 自动保存游戏状态
             saveCurrentState();
         } else {
-            logMessage("炸弹使用失败 - 可能是无效位置或炸弹不足");
+            logMessage("炸弹使用失败 - 位置有误或炸弹不足，请重新输入！");
         }
     }
     
@@ -514,6 +515,13 @@ public class ChessGameFX extends Application {
         StringBuilder info = new StringBuilder();
         info.append("游戏#").append(currentGame.getGameId())
             .append(" (").append(currentGame.getGameMode().getName()).append(")\n");
+        
+        // 显示游戏状态
+        if (currentGame.isGameEnded()) {
+            info.append("游戏状态: 已结束\n");
+        } else {
+            info.append("游戏状态: 进行中\n");
+        }
         
         if (currentGame instanceof GomokuGame) {
             GomokuGame gomoku = (GomokuGame) currentGame;
@@ -555,6 +563,9 @@ public class ChessGameFX extends Application {
         for (int i = 0; i < games.size(); i++) {
             Game game = games.get(i);
             String item = (i + 1) + ". " + game.getGameMode().getName();
+            if (game.isGameEnded()) {
+                item += " [已结束]";
+            }
             if (i == currentGameIndex) {
                 item += " (当前)";
             }
@@ -595,6 +606,18 @@ public class ChessGameFX extends Application {
         }
     }
     
+    private void updateStatusLabel() {
+        if (demoMode) {
+            statusLabel.setText("状态: 演示模式进行中...");
+        } else if (currentGame.isGameEnded()) {
+            statusLabel.setText("状态: 游戏已结束");
+        } else if (bombMode) {
+            statusLabel.setText("状态: 炸弹模式 - 请选择要炸掉的位置");
+        } else {
+            statusLabel.setText("状态: 就绪");
+        }
+    }
+    
     private void handlePass() {
         if (demoMode) {
             logMessage("演示模式进行中，无法使用Pass功能");
@@ -614,7 +637,7 @@ public class ChessGameFX extends Application {
                 // 自动保存游戏状态
                 saveCurrentState();
             } else {
-                logMessage("玩家 " + playerName + " 尝试Pass失败 - 还有合法落子位置");
+                logMessage("Pass失败 - 当前有合法落子位置，不能Pass！");
                 showAlert("无法Pass", "当前有合法落子位置，不能Pass", Alert.AlertType.WARNING);
             }
         }
@@ -780,7 +803,7 @@ public class ChessGameFX extends Application {
                     currentGame.switchPlayer();
                     return true;
                 } else {
-                    logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " Pass失败 - 有合法落子位置");
+                    logMessage("第 " + lineNumber + " 行: Pass失败 - 有合法落子位置，不能Pass！");
                     return false;
                 }
             } else {
@@ -802,7 +825,7 @@ public class ChessGameFX extends Application {
                     if (success) {
                         logMessage("炸弹使用成功");
                     } else {
-                        logMessage("炸弹使用失败");
+                        logMessage("炸弹使用失败 - 位置有误或炸弹不足！");
                     }
                 } else {
                     logMessage("第 " + lineNumber + " 行: 炸弹命令仅在Gomoku游戏中支持");
@@ -815,7 +838,7 @@ public class ChessGameFX extends Application {
                 if (success) {
                     logMessage("落子成功");
                 } else {
-                    logMessage("落子失败 - 可能是无效位置或位置已被占用");
+                    logMessage("落子位置有误，请重新输入！");
                 }
             }
             
