@@ -38,11 +38,15 @@ public class ChessGameFX extends Application {
     private Button passButton;
     private Button bombButton;
     private Button demoButton;
+    private Button newPeaceButton;
+    private Button newReversiButton;
+    private Button newGomokuButton;
     private TextArea logArea;
     
     private List<Game> games;
     private int currentGameIndex = 0;
     private boolean bombMode = false;
+    private boolean demoMode = false;  // 演示模式状态
     private Game currentGame;
     private Button[][] chessCells;
     private Stage primaryStage;
@@ -130,6 +134,17 @@ public class ChessGameFX extends Application {
         demoButton.setOnAction(e -> handleDemo());
         
         gameListView.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            // 在演示模式下禁止切换游戏
+            if (demoMode) {
+                // 恢复到之前的选择
+                javafx.application.Platform.runLater(() -> {
+                    gameListView.getSelectionModel().select(currentGameIndex);
+                });
+                // logMessage("演示模式进行中，无法切换游戏");
+                // showAlert("演示模式", "演示模式进行中，无法切换游戏", Alert.AlertType.WARNING);
+                return;
+            }
+            
             if (newVal != null && newVal.intValue() >= 0 && newVal.intValue() < games.size()) {
                 currentGameIndex = newVal.intValue();
                 currentGame = games.get(currentGameIndex);
@@ -245,9 +260,9 @@ public class ChessGameFX extends Application {
         );
         
         // 新建游戏按钮
-        Button newPeaceButton = new Button("新建Peace");
-        Button newReversiButton = new Button("新建Reversi");
-        Button newGomokuButton = new Button("新建Gomoku");
+        newPeaceButton = new Button("新建Peace");
+        newReversiButton = new Button("新建Reversi");
+        newGomokuButton = new Button("新建Gomoku");
         
         // 设置按钮宽度一致
         newPeaceButton.setMaxWidth(Double.MAX_VALUE);
@@ -423,6 +438,13 @@ public class ChessGameFX extends Application {
     }
     
     private void handleCellClick(int row, int col) {
+        // 检查是否正在演示模式
+        if (demoMode) {
+            logMessage("演示模式进行中，无法手动操作棋盘");
+            showAlert("演示模式", "演示模式进行中，请等待演示完成后再操作", Alert.AlertType.WARNING);
+            return;
+        }
+        
         if (currentGame.isGameEnded()) {
             logMessage("当前游戏已结束，无法继续下棋");
             showAlert("游戏已结束", "当前游戏已结束，请切换到其他游戏", Alert.AlertType.INFORMATION);
@@ -545,9 +567,41 @@ public class ChessGameFX extends Application {
         passButton.setVisible(currentGame instanceof ReversiGame);
         bombButton.setVisible(currentGame instanceof GomokuGame);
         demoButton.setVisible(true); // 演示模式支持所有游戏类型
+        
+        // 在演示模式下禁用某些按钮
+        if (demoMode) {
+            passButton.setDisable(true);
+            bombButton.setDisable(true);
+            demoButton.setDisable(true);
+            newPeaceButton.setDisable(true);
+            newReversiButton.setDisable(true);
+            newGomokuButton.setDisable(true);
+            demoButton.setText("演示进行中...");
+        } else {
+            passButton.setDisable(false);
+            bombButton.setDisable(false);
+            demoButton.setDisable(false);
+            newPeaceButton.setDisable(false);
+            newReversiButton.setDisable(false);
+            newGomokuButton.setDisable(false);
+            demoButton.setText("演示模式");
+            
+            // 恢复炸弹模式按钮状态
+            if (bombMode) {
+                bombButton.setText("取消炸弹");
+            } else {
+                bombButton.setText("炸弹模式");
+            }
+        }
     }
     
     private void handlePass() {
+        if (demoMode) {
+            logMessage("演示模式进行中，无法使用Pass功能");
+            showAlert("演示模式", "演示模式进行中，无法手动操作", Alert.AlertType.WARNING);
+            return;
+        }
+        
         if (currentGame instanceof ReversiGame) {
             ReversiGame reversi = (ReversiGame) currentGame;
             String playerName = currentGame.getCurrentPlayer().getName();
@@ -567,6 +621,12 @@ public class ChessGameFX extends Application {
     }
     
     private void toggleBombMode() {
+        if (demoMode) {
+            logMessage("演示模式进行中，无法使用炸弹功能");
+            showAlert("演示模式", "演示模式进行中，无法手动操作", Alert.AlertType.WARNING);
+            return;
+        }
+        
         if (currentGame instanceof GomokuGame) {
             bombMode = !bombMode;
             bombButton.setText(bombMode ? "取消炸弹" : "炸弹模式");
@@ -621,7 +681,11 @@ public class ChessGameFX extends Application {
         CompletableFuture.runAsync(() -> {
             try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(filename))) {
                 javafx.application.Platform.runLater(() -> {
+                    demoMode = true;  // 开始演示模式
+                    bombMode = false; // 退出炸弹模式（如果有的话）
                     logMessage("开始执行playback命令，读取文件: " + filename);
+                    statusLabel.setText("状态: 演示模式进行中...");
+                    updateButtons();  // 更新按钮状态
                 });
                 
                 String command;
@@ -639,7 +703,10 @@ public class ChessGameFX extends Application {
                     // 检查游戏是否已结束
                     if (currentGame.isGameEnded()) {
                         javafx.application.Platform.runLater(() -> {
+                            demoMode = false;  // 游戏结束时退出演示模式
                             logMessage("演示结束：游戏已结束");
+                            statusLabel.setText("状态: 就绪");
+                            updateButtons();  // 恢复按钮状态
                         });
                         break;
                     }
@@ -666,7 +733,10 @@ public class ChessGameFX extends Application {
                     // 检查游戏是否结束
                     if (currentGame.isGameEnded()) {
                         javafx.application.Platform.runLater(() -> {
+                            demoMode = false;  // 游戏结束时退出演示模式
                             logMessage("演示过程中游戏结束！");
+                            statusLabel.setText("状态: 就绪");
+                            updateButtons();  // 恢复按钮状态
                             showGameResult();
                         });
                         break;
@@ -674,12 +744,18 @@ public class ChessGameFX extends Application {
                 }
                 
                 javafx.application.Platform.runLater(() -> {
+                    demoMode = false;  // 结束演示模式
                     logMessage("playback命令执行完成");
+                    statusLabel.setText("状态: 就绪");
+                    updateButtons();  // 恢复按钮状态
                 });
                 
             } catch (java.io.IOException e) {
                 javafx.application.Platform.runLater(() -> {
+                    demoMode = false;  // 发生错误时也要结束演示模式
                     logMessage("读取文件时出错: " + e.getMessage());
+                    statusLabel.setText("状态: 就绪");
+                    updateButtons();  // 恢复按钮状态
                     showAlert("错误", "无法读取脚本文件: " + e.getMessage(), Alert.AlertType.ERROR);
                 });
             }
@@ -755,6 +831,13 @@ public class ChessGameFX extends Application {
     }
     
     private void addNewGame(String gameType) {
+        // 在演示模式下禁止创建新游戏
+        if (demoMode) {
+            logMessage("演示模式进行中，无法创建新游戏");
+            showAlert("演示模式", "演示模式进行中，无法创建新游戏", Alert.AlertType.WARNING);
+            return;
+        }
+        
         Game newGame;
         int newId = games.size() + 1;
         
