@@ -10,6 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import com.chess.service.Game;
@@ -21,6 +22,10 @@ import com.chess.gui.GameState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.concurrent.CompletableFuture;
 
 public class ChessGameFX extends Application {
     
@@ -577,10 +582,173 @@ public class ChessGameFX extends Application {
     }
     
     private void handleDemo() {
-        if (currentGame instanceof GomokuGame) {
-            logMessage("演示模式功能暂未实现");
-            showAlert("演示模式", "演示模式功能待实现", Alert.AlertType.INFORMATION);
+       
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("选择演示脚本");
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("脚本文件", "*.txt", "*.cmd", "*.script"),
+                new FileChooser.ExtensionFilter("所有文件", "*.*")
+            );
+            
+            File selectedFile = fileChooser.showOpenDialog(primaryStage);
+            if (selectedFile != null) {
+                runPlayback(selectedFile.getAbsolutePath());
+            }
+
+    }
+    
+    /**
+     * 执行演示脚本（Playback模式）
+     * 脚本格式：每行一个命令
+     * - 普通落子：行列坐标，如 "A1", "B2" 等
+     * - 炸弹：@行列坐标，如 "@A1", "@B2" 等
+     * - Pass命令：pass
+     * - 注释：# 开头的行会被忽略
+     * 
+     * @param filename 脚本文件路径
+     */
+    private void runPlayback(String filename) {
+        // if (!(currentGame instanceof GomokuGame)) {
+        //     logMessage("演示模式仅支持Gomoku游戏");
+        //     showAlert("演示模式", "演示模式仅支持Gomoku游戏", Alert.AlertType.WARNING);
+        //     return;
+        // }
+        
+        // 在后台线程执行，避免阻塞UI
+        CompletableFuture.runAsync(() -> {
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(filename))) {
+                javafx.application.Platform.runLater(() -> {
+                    logMessage("开始执行playback命令，读取文件: " + filename);
+                });
+                
+                String command;
+                int lineNumber = 0;
+                while ((command = reader.readLine()) != null) {
+                    lineNumber++;
+                    final int currentLineNumber = lineNumber;
+                    command = command.trim();
+                    
+                    // 跳过空行和注释
+                    if (command.isEmpty() || command.startsWith("#")) {
+                        continue;
+                    }
+                    
+                    // 检查游戏是否已结束
+                    if (currentGame.isGameEnded()) {
+                        javafx.application.Platform.runLater(() -> {
+                            logMessage("演示结束：游戏已结束");
+                        });
+                        break;
+                    }
+                    
+                    final String finalCommand = command;
+                    
+                    // 在UI线程中执行命令
+                    javafx.application.Platform.runLater(() -> {
+                        boolean commandExecuted = executeDemoCommand(finalCommand, currentLineNumber);
+                        if (commandExecuted) {
+                            updateDisplay();
+                            saveCurrentState();
+                        }
+                    });
+                    
+                    // 延迟1秒，让用户看清楚
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                    
+                    // 检查游戏是否结束
+                    if (currentGame.isGameEnded()) {
+                        javafx.application.Platform.runLater(() -> {
+                            logMessage("演示过程中游戏结束！");
+                            showGameResult();
+                        });
+                        break;
+                    }
+                }
+                
+                javafx.application.Platform.runLater(() -> {
+                    logMessage("playback命令执行完成");
+                });
+                
+            } catch (java.io.IOException e) {
+                javafx.application.Platform.runLater(() -> {
+                    logMessage("读取文件时出错: " + e.getMessage());
+                    showAlert("错误", "无法读取脚本文件: " + e.getMessage(), Alert.AlertType.ERROR);
+                });
+            }
+        });
+    }
+    
+    /**
+     * 执行单个演示命令
+     * @param command 要执行的命令
+     * @param lineNumber 行号
+     * @return 是否成功执行命令
+     */
+    private boolean executeDemoCommand(String command, int lineNumber) {
+        if (!(currentGame instanceof GomokuGame)) {
+            logMessage("演示模式仅支持Gomoku游戏");
+            return false;
         }
+        
+        GomokuGame gomoku = (GomokuGame) currentGame;
+        String playerName = currentGame.getCurrentPlayer().getName();
+        
+        // 处理pass命令
+        if (command.equalsIgnoreCase("pass")) {
+            if (currentGame instanceof ReversiGame) {
+                ReversiGame reversi = (ReversiGame) currentGame;
+                if (!reversi.hasValidMove(currentGame.getCurrentPlayer())) {
+                    logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " Pass");
+                    currentGame.switchPlayer();
+                    return true;
+                } else {
+                    logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " Pass失败 - 有合法落子位置");
+                    return false;
+                }
+            } else {
+                logMessage("第 " + lineNumber + " 行: Pass命令在当前游戏模式下不支持");
+                return false;
+            }
+        }
+        
+        // 处理落子命令
+        if (command.length() >= 2) {
+            boolean success = false;
+            
+            if (command.startsWith("@")) {
+                // 炸弹命令
+                logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 使用炸弹 " + command);
+                success = gomoku.processMoveInput(command);
+                if (success) {
+                    logMessage("炸弹使用成功");
+                } else {
+                    logMessage("炸弹使用失败");
+                }
+            } else {
+                // 普通落子命令
+                logMessage("第 " + lineNumber + " 行: 玩家 " + playerName + " 在 " + command + " 位置落子");
+                success = gomoku.processMoveInput(command);
+                if (success) {
+                    logMessage("落子成功");
+                } else {
+                    logMessage("落子失败");
+                }
+            }
+            
+            if (success) {
+                gomoku.switchPlayer();
+                gomoku.checkGameEnd();
+                return true;
+            }
+        }
+        
+        logMessage("第 " + lineNumber + " 行: 无效命令 - " + command);
+        return false;
     }
     
     private void addNewGame(String gameType) {
