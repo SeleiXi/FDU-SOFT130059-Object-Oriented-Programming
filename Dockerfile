@@ -7,4 +7,4 @@ RUN mvn package -DskipTests
 FROM openjdk:8-jre-slim
 WORKDIR /app
 COPY --from=build /app/target/chess-game-1.0-SNAPSHOT.jar /app/chess-game.jar
-ENTRYPOINT ["java", "-jar", "/app/chess-game.jar"] 
+ENTRYPOINT ["java", "-jar", "/app/chess-game.jar"]
