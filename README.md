@@ -24,7 +24,7 @@ java -jar target/chess-game-1.0-SNAPSHOT.jar
 ### jar包
 
 ```
-java -jar target/chess-game-1.0-SNAPSHOT.jar
+java -jar target/lab6.jar
 ```
 
 ## 游戏模式及运行截图

@@ -3,6 +3,9 @@ package com.chess.service;
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import com.chess.entity.Board;
 import com.chess.entity.Piece;
 import com.chess.entity.Player;
@@ -244,23 +247,16 @@ public class Game {
     }
 
     protected void makeMove(boolean hasPassMethod, boolean hasBombFeature) {
-        boolean hasDemoMode = false;
-        if(hasBombFeature){
-            hasDemoMode = true;
-        }
         boolean validMove = false;
         while (!validMove) {
             int validBoardCount = countInitializedBoards();
             if (hasPassMethod) {
-                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 退出程序(quit)：");
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 演示模式(playback) / 退出程序(quit)：");
             } else if (hasBombFeature) {
-                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 炸弹道具（输入“@FA”可炸掉FA位置上的敌方的棋子，并且让该位置不可放置棋子）  / 退出程序(quit)");
-                if(hasDemoMode){
-                    System.out.print(" / 演示模式（输入“demo”可演示当前游戏）：");
-                }
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 炸弹道具（输入\"@FA\"可炸掉FA位置上的敌方的棋子，并且让该位置不可放置棋子） / 演示模式(playback) / 退出程序(quit)：");
             }
             else {
-                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ")  / 退出程序(quit)：");
+                System.out.print("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 演示模式(playback) / 退出程序(quit)：");
             }
             String input = scanner.nextLine().trim();
 
@@ -275,8 +271,19 @@ public class Game {
                 return;
             }
             
+            // 检查是否为playback命令
+            if (input.toLowerCase().startsWith("playback ")) {
+                String filename = input.substring(9).trim();
+                if (!filename.isEmpty()) {
+                    runPlayback(filename);
+                    continue;
+                } else {
+                    System.out.println("请提供文件名，格式：playback {filename.cmd}");
+                    continue;
+                }
+            }
+            
             // 检查是否为添加新游戏命令
-
             // 因为不能直接for里面continue，所以需要一个变量来控制是否继续当前轮（否则后面会重复判定输入格式error）
             boolean continueRound = false;
             for (GameMode mode : GameMode.values()){
@@ -291,12 +298,6 @@ public class Game {
             if(continueRound){
                 continue;
             }
-            // if (input.equalsIgnoreCase ("peace") || input.equalsIgnoreCase("reversi") || input.equalsIgnoreCase("gomoku")) {
-            //     addNewGame(input);
-            //     clearScreen();
-            //     displayBoard();
-            //     continue;
-            // }
 
             if(input.equalsIgnoreCase("pass")) {
                 if(!hasPassMethod) {
@@ -424,10 +425,90 @@ public class Game {
         }
     }
 
+    /**
+     * 运行playback命令，从指定文件读取命令序列并依次执行
+     * @param filename 命令文件名
+     */
+    protected void runPlayback(String filename) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            System.out.println("开始执行playback命令，读取文件: " + filename);
+            String command;
+            while ((command = reader.readLine()) != null) {
+                command = command.trim();
+                if (command.isEmpty()) {
+                    continue; // 跳过空行
+                }
+
+                
+                // 处理每个命令
+                boolean commandExecuted = executeCommand(command);
+                if(commandExecuted){
+                    clearScreen();
+                    displayBoard();
+                    // 显示可以输入的命令 如 请玩家[Player1]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型(peace,reversi,gomoku) / 跳过行棋（Pass） / playback命令 / 退出程序(quit)：
+                    System.out.println("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 演示模式(playback) / 退出程序(quit)：");
+    
+                } else{
+                    clearScreen();
+                    displayBoard();
+                    executeCommand(command);
+                    System.out.println("请玩家[" + currentPlayer.getName() + "]输入落子位置(如1a) / 游戏编号 (如1,2) / 新游戏类型("+String.join(",", GameModeList) + ") / 跳过行棋（Pass） / 演示模式(playback) / 退出程序(quit)：");
+    
+                }
+                // 显示棋盘状态
+
+                try {
+                    Thread.sleep(1000);
+                    
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
 
 
+                // 延迟1秒
 
 
-
-
+                
+                // 检查游戏是否结束
+                checkGameEnd();
+                if (isGameEnded) {
+                    displayGameResult();
+                    break;
+                }
+            }
+            System.out.println("playback命令执行完成");
+        } catch (IOException e) {
+            System.out.println("读取文件时出错: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 执行单个命令
+     * @param command 要执行的命令
+     * @return 是否成功执行命令
+     */
+    protected boolean executeCommand(String command) {
+        // 处理pass命令
+        if (command.equalsIgnoreCase("pass")) {
+            if (!hasValidMove(currentPlayer)) {
+                switchPlayer();
+                return true;
+            } else {
+                System.out.println("当前玩家有合法落子位置，不能Pass");
+                return false;
+            }
+        }
+        
+        // 处理落子命令
+        if (command.length() >= 2) {
+            boolean validMove = processMoveInput(command);
+            if (validMove) {
+                switchPlayer();
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }
